@@ -28,6 +28,8 @@ module Listings {
     };
 
     export function init(): void {
+        Util.debug('Initialize.');
+
         // add item activity if not present
         if (!document.getElementById('market_activity_section')) {
             addItemActivity();
@@ -80,22 +82,24 @@ module Listings {
             let activator = <HTMLElement>document.querySelector('a[data-for="activate-activity"]');
 
             activator.click();
+            Util.debug('Added market activity.');
 
             try {
                 activator.remove();
-            } catch {
-                // ignore
-            }
+            } catch { }
         }, 150);
     }
 
     function addBuyImmediately(): void {
         let buttonContainers = document.querySelectorAll('div.market_listing_right_cell.market_listing_action_buttons');
 
+        let count = 0;
         for (let i = 0, l = buttonContainers.length; i < l; i ++) {
             let buttonContainer = <HTMLElement>buttonContainers.item(i);
 
             if (buttonContainer?.getAttribute('data-adjusted') == 'true') continue;
+
+            count ++;
 
             buttonContainer.setAttribute('data-adjusted', 'true');
 
@@ -114,27 +118,34 @@ module Listings {
 
             buttonContainer.append(newButton);
         }
+
+        Util.debug(`Added BuyImmediately to ${count} elements.`);
     }
 
     function hideAccountName(): void {
-        let accountNameElement = document.getElementById('market_buynow_dialog_myaccountname');
-        let accountName = accountNameElement.innerText;
+        let accountNameElements = <NodeListOf<HTMLElement>>document.querySelectorAll('#market_buynow_dialog_myaccountname,#market_buyorder_dialog_myaccountname');
 
-        accountNameElement.setAttribute('data-name', accountName);
-        accountNameElement.setAttribute('style', 'cursor: pointer; text-decoration: underline;');
+        for (let i = 0, l = accountNameElements.length; i < l; i ++) {
+            let accountNameElement = accountNameElements.item(i);
 
-        accountNameElement.innerText = 'Click to show';
+            let accountName = accountNameElement.innerText;
 
-        accountNameElement.onclick = (e) => {
-            accountNameElement.innerText = accountNameElement.getAttribute('data-name');
-            accountNameElement.setAttribute('style', '');
+            accountNameElement.setAttribute('data-name', accountName);
+            accountNameElement.setAttribute('style', 'cursor: pointer; text-decoration: underline;');
 
-            let rows = document.querySelectorAll('.market_dialog_billing_address_row');
+            accountNameElement.innerText = 'Click to show';
 
-            for (let i = 0, l = rows.length; i < l; i ++) {
-                rows.item(i).setAttribute('style', '');
-            }
-        };
+            accountNameElement.onclick = () => {
+                accountNameElement.innerText = accountNameElement.getAttribute('data-name');
+                accountNameElement.setAttribute('style', '');
+
+                let rows = document.querySelectorAll('.market_dialog_billing_address_row');
+
+                for (let i = 0, l = rows.length; i < l; i ++) {
+                    rows.item(i).setAttribute('style', '');
+                }
+            };
+        }
     }
 
     function hideBillingAddress(): void {

@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "module": "None",
+        "target": "es5",
+        "sourceMap": false
+    },
+    "files": [
+        "Util.ts",
+        "listings/listings.ts"
+    ]
+}

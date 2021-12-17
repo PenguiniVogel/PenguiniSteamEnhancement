@@ -5,8 +5,13 @@
     "manifest_version": 2,
     "content_scripts": [
         {
-            "js": ["listings/listings.js"],
-            "matches": ["https://steamcommunity.com/market/listings/*"]
+            "js": [
+                "Util.js",
+                "listings/listings.js"
+            ],
+            "matches": [
+                "https://steamcommunity.com/market/listings/*"
+            ]
         }
     ],
     "permissions": [],
