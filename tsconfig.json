@@ -5,6 +5,7 @@
         "sourceMap": false
     },
     "files": [
+        "steam.d.ts",
         "Util.ts",
         "listings/listings.ts"
     ]

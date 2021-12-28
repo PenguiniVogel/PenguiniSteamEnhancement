@@ -1,5 +1,8 @@
 module Listings {
 
+    interface ItemActivityTicker { Start: (p: any) => void }
+    declare var ItemActivityTicker: ItemActivityTicker;
+
     const enum MessageEventType {
         HEAD = '_PenguiniSteamEnhancement',
         BUY_IMMEDIATELY = 'BUY_IMMEDIATELY'
@@ -30,6 +33,9 @@ module Listings {
     export function init(): void {
         Util.debug('Initialize.');
 
+        // add modal
+        Util.initModal();
+
         // add item activity if not present
         if (!document.getElementById('market_activity_section')) {
             addItemActivity();
@@ -43,6 +49,12 @@ module Listings {
 
         // hide billing address
         hideBillingAddress();
+
+        // merge active listings
+        mergeMyActiveListings();
+
+        // inject custom price graph
+        injectPriceGraphFix();
     }
 
     function addItemActivity(): void {
@@ -119,7 +131,9 @@ module Listings {
             buttonContainer.append(newButton);
         }
 
-        Util.debug(`Added BuyImmediately to ${count} elements.`);
+        if (count > 0) {
+            Util.debug(`Added BuyImmediately to ${count} elements.`);
+        }
     }
 
     function hideAccountName(): void {
@@ -154,6 +168,320 @@ module Listings {
         for (let i = 0, l = rows.length; i < l; i ++) {
             rows.item(i).setAttribute('style', 'display: none;');
         }
+    }
+
+    function mergeMyActiveListings(): void {
+        let container = <HTMLElement>document.querySelector('#tabContentsMyActiveMarketListingsTable');
+        let rowContainer = <HTMLElement>container.querySelector('#tabContentsMyActiveMarketListingsRows');
+
+        if (!rowContainer) return;
+
+        let rows = <NodeListOf<HTMLElement>>rowContainer.querySelectorAll('div[id^="mylisting_"]');
+
+        if (rows?.length == 0) return;
+
+        container.querySelector('div.market_listing_table_header span.market_listing_listed_date').innerHTML = 'COUNT';
+
+        let listingData: {
+            name: string,
+            border_color: string,
+            market_link: string,
+            listings: {
+                [price: string]: {
+                    itemid: string,
+                    listingid: string,
+                    img_src: string,
+                    img_srcset: string
+                }[]
+            }
+        } = {
+            name: document.querySelector('#largeiteminfo_item_name').innerHTML.trim(),
+            border_color: rows.item(0).querySelector('img[id]').getAttribute('style'),
+            market_link: document.querySelector('#mainContents div.market_listing_nav a[href*="listings"]').getAttribute('href'),
+            listings: {}
+        };
+
+        let simpleListingData: {
+            [price: string]: {
+                itemid: string,
+                listingid: string
+            }[]
+        } = {};
+
+        for (let i = 0, l = rows.length; i < l; i ++) {
+            let row = rows.item(i);
+            let dataA = <HTMLElement>row.querySelector('a[href].item_market_action_button');
+            let href = dataA.getAttribute('href');
+
+            let regex = /\d+/g;
+            let listingid = '?', itemid = '?';
+
+            for (let i = 0; i < 4; i ++) {
+                let match = regex.exec(href);
+
+                switch (i) {
+                    case 0:
+                        listingid = match[0];
+                        break;
+                    case 3:
+                        itemid = match[0];
+                        break;
+                    default:
+                        break;
+                }
+
+                regex.lastIndex ++;
+            }
+
+            // Util.debug(listingid, itemid);
+
+            let priceSpan = <HTMLElement>row.querySelector('.market_listing_my_price span[title]');
+            let price = (priceSpan?.innerText ?? '?').trim();
+
+            let img = <HTMLElement>row.querySelector('img[id]');
+
+            let itemListings = listingData.listings[price] ?? (listingData.listings[price] = []);
+            itemListings.push({
+                itemid: itemid,
+                listingid: listingid,
+                img_src: img.getAttribute('src'),
+                img_srcset: img.getAttribute('srcset')
+            });
+
+            let simpleListings = simpleListingData[price] ?? (simpleListingData[price] = []);
+            simpleListings.push({
+                itemid: itemid,
+                listingid: listingid,
+            });
+
+            row.setAttribute('style', 'display: none;');
+        }
+
+        let myListedPrices = Object.keys(listingData.listings).sort((a, b) => a > b ? 1 : -1);
+
+        Util.debug(myListedPrices, listingData);
+
+        function g_pse_sendRemove(listingid: string, onSuccess: (transport) => void, onFailure: (transport) => void): void {
+            new Ajax.Request(`https://steamcommunity.com/market/removelisting/${listingid}`, {
+                method: 'post',
+                parameters: {
+                    sessionid: g_sessionID
+                },
+                onSuccess: onSuccess,
+                onFailure: onFailure
+            });
+        }
+
+        function g_pse_removeNextListing(key: string, index: number): void {
+            let next = g_pse_listingdata[key][0];
+
+            g_pse_showModal(`
+Removing listing... (${next.listingid})
+<img style="display: block; margin: 10px auto 0;" src="https://community.cloudflare.steamstatic.com/public/images/login/throbber.gif" alt="Working...">
+                `);
+
+            g_pse_sendRemove(next.listingid, (transport) => {
+                g_pse_listingdata[key].shift();
+
+                document.querySelector(`#mylisting_combined_${index}_count`).innerHTML = `${g_pse_listingdata[key].length}`;
+
+                g_pse_dismissModal();
+
+                Util.debug(transport);
+            }, (transport) => {
+                g_pse_dismissModal();
+
+                Util.debug(transport);
+            });
+        }
+
+        function g_pse_removeAllListings(key: string, index: number): void {
+            let listings = g_pse_listingdata[key];
+            let count = listings.length;
+            let at = 0;
+
+            function removeNext(): void {
+                let next = g_pse_listingdata[key][0];
+                at ++;
+
+                if (at >= count) {
+                    g_pse_dismissModal();
+
+                    document.querySelector(`#mylisting_combined_${index}`).setAttribute('style', 'display: none;');
+                }
+
+                g_pse_showModal(`
+Removing listings... (${at} / ${count})<br>(${next.listingid})
+<img style="display: block; margin: 10px auto 0;" src="https://community.cloudflare.steamstatic.com/public/images/login/throbber.gif" alt="Working...">`);
+
+                g_pse_sendRemove(next.listingid, (transport) => {
+                    g_pse_listingdata[key].shift();
+
+                    document.querySelector(`#mylisting_combined_${index}_count`).innerHTML = `${g_pse_listingdata[key].length}`;
+
+                    removeNext();
+
+                    Util.debug(transport);
+                }, (transport) => {
+                    g_pse_dismissModal();
+
+                    Util.debug(transport);
+                });
+            }
+
+            removeNext();
+        }
+
+        Util.injectScriptTag(`
+var g_pse_listingdata = ${JSON.stringify(simpleListingData)};
+
+${g_pse_sendRemove.toString()}
+
+${g_pse_removeNextListing.toString()}
+
+${g_pse_removeAllListings.toString()}
+        `);
+
+        for (let i = 0, l = myListedPrices.length; i < l; i ++) {
+            let newHTML = `
+<div class="market_listing_row market_recent_listing_row listing_combined${i}" id="mylisting_combined_${i}">
+    <img id="mylisting_combined_${i}_img" src="${listingData.listings[myListedPrices[i]][0].img_src}" srcset="${listingData.listings[myListedPrices[i]][0].img_srcset}" style="${listingData.border_color}" class="market_listing_item_img" alt="img_${listingData.name}">
+
+    <div class="market_listing_right_cell market_listing_edit_buttons placeholder"></div>
+
+    <div class="market_listing_right_cell market_listing_my_price">
+        <span class="market_table_value">
+            <span class="market_listing_price">
+                <span style="display: inline-block">
+                    <span title="This is the price the buyer pays.">${myListedPrices[i]}</span>
+                    <br>
+                    <!--span title="This is how much you will receive." style="color: #AFAFAF">(0,01€)</span-->
+                </span>
+            </span>
+        </span>
+    </div>
+
+    <div id="mylisting_combined_${i}_count" class="market_listing_right_cell market_listing_listed_date can_combine">${listingData.listings[myListedPrices[i]].length}</div>
+
+    <div class="market_listing_item_name_block">
+        <span id="mylisting_combined_${i}_name" class="market_listing_item_name" style="color: #D2D2D2;">
+            <a class="market_listing_item_name_link" href="${listingData.market_link}">${listingData.name}</a>
+        </span>
+        <br>
+        <span class="market_listing_game_name">Counter-Strike: Global Offensive</span>
+        <!--div class="market_listing_listed_date_combined">Listed: 5 Nov</div-->
+    </div>
+
+    <div class="market_listing_edit_buttons actual_content">
+        <div class="market_listing_cancel_button">
+            <a href="javascript:g_pse_removeNextListing('${myListedPrices[i]}', ${i});" class="item_market_action_button item_market_action_button_edit nodisable">
+                <span class="item_market_action_button_edge item_market_action_button_left"></span>
+                <span class="item_market_action_button_contents">Remove</span>
+                <span class="item_market_action_button_edge item_market_action_button_right"></span>
+                <span class="item_market_action_button_preload"></span>
+            </a>
+            <a href="javascript:g_pse_removeAllListings('${myListedPrices[i]}', ${i});" class="item_market_action_button item_market_action_button_edit nodisable">
+                <span class="item_market_action_button_edge item_market_action_button_left"></span>
+                <span class="item_market_action_button_contents">Remove All</span>
+                <span class="item_market_action_button_edge item_market_action_button_right"></span>
+                <span class="item_market_action_button_preload"></span>
+            </a>
+        </div>
+    </div>
+    <div style="clear: both"></div>
+</div>`;
+
+            rowContainer.innerHTML += newHTML;
+        }
+    }
+
+    function injectPriceGraphFix(): void {
+        function drawCustomPlot(line1: any): void {
+            g_plotPriceHistory = $J.jqplot('pricehistory', [line1], {
+                title: {
+                    text: 'Median Sale Prices',
+                    textAlign: 'left'
+                },
+                gridPadding: {
+                    left: 45,
+                    right:45,
+                    top:25
+                },
+                axesDefaults: {
+                    showTickMarks: false
+                },
+                axes: {
+                    xaxis: {
+                        renderer: $J.jqplot.DateAxisRenderer,
+                        tickOptions: { formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>' },
+                        pad: 1
+                    },
+                    yaxis: {
+                        pad: 1.1,
+                        tickOptions: {
+                            formatString: '$%0.2f',
+                            labelPosition: 'start',
+                            showMark: false
+                        },
+                        numberTicks: 7
+                    }
+                },
+                grid: {
+                    gridLineColor: '#1b2939',
+                    borderColor: '#1b2939',
+                    background: '#101822'
+                },
+                cursor: {
+                    show: true,
+                    zoom: true,
+                    showTooltip: false
+                },
+                highlighter: {
+                    show: true,
+                    lineWidthAdjust: 2.5,
+                    sizeAdjust: 5,
+                    showTooltip: true,
+                    tooltipLocation: 'n',
+                    tooltipOffset: 20,
+                    fadeTooltip: true,
+                    yvalues: 2,
+                    formatString: '<strong>%s</strong><br>%s<br>%d sold'
+                },
+                series: [{
+                    lineWidth: 3,
+                    markerOptions: {
+                        show: false,
+                        style: 'circle'
+                    }
+                }],
+                seriesColors: [ "#688F3E" ]
+            });
+
+            pricehistory_zoomMonthOrLifetime(g_plotPriceHistory, g_timePriceHistoryEarliest, g_timePriceHistoryLatest);
+        }
+
+        // find line1 data
+        let line1 = '';
+        let scripts = document.querySelectorAll('body script');
+
+        for (let i = 0, l = scripts.length; i < l; i ++) {
+            line1 = (/var line1=.*/g.exec(scripts.item(i).innerHTML) ?? [undefined])[0];
+
+            if (line1) break;
+        }
+
+        let pricehistory = document.getElementById('pricehistory');
+        pricehistory.innerHTML = '';
+
+        Util.injectScriptTag(`
+(function() {
+${line1}
+
+${drawCustomPlot.toString()}
+
+drawCustomPlot(line1);
+})();`);
+        //
     }
 
 }
