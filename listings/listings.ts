@@ -42,7 +42,8 @@ module Listings {
         }
 
         // buy immediately
-        setInterval(() => addBuyImmediately(), 1000);
+        // DANGER! Removed for now
+        // setInterval(() => addBuyImmediately(), 1000);
 
         // hide account name
         hideAccountName();
