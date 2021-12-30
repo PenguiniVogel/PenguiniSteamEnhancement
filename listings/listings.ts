@@ -45,6 +45,9 @@ module Listings {
         // DANGER! Removed for now
         // setInterval(() => addBuyImmediately(), 1000);
 
+        // add view on buff
+        addViewOnBuff();
+
         // hide account name
         hideAccountName();
 
@@ -101,6 +104,31 @@ module Listings {
                 activator.remove();
             } catch { }
         }, 150);
+    }
+
+    function addViewOnBuff(): void {
+        let container = document.querySelector('#largeiteminfo_item_actions');
+
+        if (!container) return;
+
+        let newAhref = document.createElement('a');
+
+        // usually goes Game > Item
+        let marketNavA = document.querySelectorAll('div.market_listing_nav a')[1];
+
+        if (!marketNavA) return;
+
+        let newAhrefinnerHTML = marketNavA.innerHTML;
+        // todo finish this
+
+        if (newAhref)
+
+        newAhref.setAttribute('class', 'btn_small btn_grey_white_innerfade');
+        newAhref.setAttribute('href', '');
+
+        newAhref.innerHTML = `<span style="background: #2e2a35; color: #ddb362;">View on BUFF</span>`;
+
+        container.appendChild(newAhref);
     }
 
     function addBuyImmediately(): void {
@@ -173,7 +201,7 @@ module Listings {
 
     function mergeMyActiveListings(): void {
         let container = <HTMLElement>document.querySelector('#tabContentsMyActiveMarketListingsTable');
-        let rowContainer = <HTMLElement>container.querySelector('#tabContentsMyActiveMarketListingsRows');
+        let rowContainer = container ? <HTMLElement>container.querySelector('#tabContentsMyActiveMarketListingsRows') : null;
 
         if (!rowContainer) return;
 
