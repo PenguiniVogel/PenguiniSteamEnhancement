@@ -117,13 +117,16 @@ module Listings {
 
         let newAhref = document.createElement('a');
 
-        // usually goes Game > Item
-        let marketNavA = document.querySelectorAll('div.market_listing_nav a')[1];
+        // item name from url, as that isn't translated
+        let windowHref = window?.location?.href;
+        let link_match: string | RegExpMatchArray = /730\/.*/g.exec(windowHref);
 
-        if (!marketNavA) return;
+        if (!link_match) return;
 
-        let special_quality: RegExpMatchArray | string = /^(★(?: StatTrak™)?|StatTrak™|Souvenir)/g.exec(marketNavA.innerHTML) ?? ['-1'];
-        let itemName = marketNavA.innerHTML;
+        link_match = decodeURIComponent(link_match[0].substr('730/'.length));
+
+        let special_quality: string | RegExpMatchArray = /^(★(?: StatTrak™)?|StatTrak™|Souvenir)/g.exec(link_match) ?? ['-1'];
+        let itemName = link_match;
 
         switch (special_quality[0]) {
             case '★':
@@ -167,39 +170,39 @@ module Listings {
         container.appendChild(newAhref);
     }
 
-    function addBuyImmediately(): void {
-        let buttonContainers = document.querySelectorAll('div.market_listing_right_cell.market_listing_action_buttons');
-
-        let count = 0;
-        for (let i = 0, l = buttonContainers.length; i < l; i ++) {
-            let buttonContainer = <HTMLElement>buttonContainers.item(i);
-
-            if (buttonContainer?.getAttribute('data-adjusted') == 'true') continue;
-
-            count ++;
-
-            buttonContainer.setAttribute('data-adjusted', 'true');
-
-            let aHrefOther = <HTMLElement>buttonContainer.querySelector('a[href]');
-
-            if (!aHrefOther) continue;
-
-            let newButton = document.createElement('div');
-
-            newButton.setAttribute('class', 'market_listing_buy_button');
-
-            newButton.innerHTML = `
-<a onclick="window.postMessage(['${MessageEventType.HEAD}', '${MessageEventType.BUY_IMMEDIATELY}', '${aHrefOther.getAttribute('href').replace(/'/g, '\\\'')}'], '*');" class="item_market_action_button btn_green_white_innerfade btn_small">
-    <span style="padding: 0 5px;">Buy Immediately</span>
-</a>`;
-
-            buttonContainer.append(newButton);
-        }
-
-        if (count > 0) {
-            Util.debug(`Added BuyImmediately to ${count} elements.`);
-        }
-    }
+//     function addBuyImmediately(): void {
+//         let buttonContainers = document.querySelectorAll('div.market_listing_right_cell.market_listing_action_buttons');
+//
+//         let count = 0;
+//         for (let i = 0, l = buttonContainers.length; i < l; i ++) {
+//             let buttonContainer = <HTMLElement>buttonContainers.item(i);
+//
+//             if (buttonContainer?.getAttribute('data-adjusted') == 'true') continue;
+//
+//             count ++;
+//
+//             buttonContainer.setAttribute('data-adjusted', 'true');
+//
+//             let aHrefOther = <HTMLElement>buttonContainer.querySelector('a[href]');
+//
+//             if (!aHrefOther) continue;
+//
+//             let newButton = document.createElement('div');
+//
+//             newButton.setAttribute('class', 'market_listing_buy_button');
+//
+//             newButton.innerHTML = `
+// <a onclick="window.postMessage(['${MessageEventType.HEAD}', '${MessageEventType.BUY_IMMEDIATELY}', '${aHrefOther.getAttribute('href').replace(/'/g, '\\\'')}'], '*');" class="item_market_action_button btn_green_white_innerfade btn_small">
+//     <span style="padding: 0 5px;">Buy Immediately</span>
+// </a>`;
+//
+//             buttonContainer.append(newButton);
+//         }
+//
+//         if (count > 0) {
+//             Util.debug(`Added BuyImmediately to ${count} elements.`);
+//         }
+//     }
 
     function hideAccountName(): void {
         let accountNameElements = <NodeListOf<HTMLElement>>document.querySelectorAll('#market_buynow_dialog_myaccountname,#market_buyorder_dialog_myaccountname');
