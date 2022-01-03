@@ -1,6 +1,6 @@
 {
     "name": "Penguini Steam Enhancement",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Adds extended functionality and cosmetic elements to Steam.",
     "manifest_version": 2,
     "content_scripts": [

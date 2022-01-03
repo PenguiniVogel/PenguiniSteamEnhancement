@@ -118,13 +118,45 @@ module Listings {
 
         if (!marketNavA) return;
 
-        let newAhrefinnerHTML = marketNavA.innerHTML;
-        // todo finish this
+        let special_quality: RegExpMatchArray | string = /^(★(?: StatTrak™)?|StatTrak™|Souvenir)/g.exec(marketNavA.innerHTML) ?? ['-1'];
+        let itemName = marketNavA.innerHTML;
 
-        if (newAhref)
+        switch (special_quality[0]) {
+            case '★':
+            case '★ StatTrak™':
+            case 'StatTrak™':
+            case 'Souvenir':
+                itemName = itemName.substr(special_quality[0].length + 1);
+                break;
+            case '-1':
+                break;
+        }
+
+        switch (special_quality[0]) {
+            case '★':
+                special_quality = 'unusual';
+                break;
+            case '★ StatTrak™':
+                special_quality = 'unusual_strange';
+                break;
+            case 'StatTrak™':
+                special_quality = 'strange';
+                break;
+            case 'Souvenir':
+                special_quality = 'tournament';
+                break;
+            case '-1':
+                special_quality = 'normal';
+                break;
+        }
+
+        let wear_test = /Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred/gi.test(itemName);
+
+        Util.debug(special_quality, itemName, wear_test);
 
         newAhref.setAttribute('class', 'btn_small btn_grey_white_innerfade');
-        newAhref.setAttribute('href', '');
+        newAhref.setAttribute('href', `https://buff.163.com/market/csgo#tab=selling&page_num=1&search=${encodeURIComponent(itemName)}${wear_test ? `&quality=${special_quality}` : ''}`);
+        newAhref.setAttribute('target', '_blank');
 
         newAhref.innerHTML = `<span style="background: #2e2a35; color: #ddb362;">View on BUFF</span>`;
 
