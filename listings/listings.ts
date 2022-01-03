@@ -108,8 +108,12 @@ module Listings {
 
     function addViewOnBuff(): void {
         let container = document.querySelector('#largeiteminfo_item_actions');
+        let game_name = document.querySelector('#largeiteminfo_game_name');
 
-        if (!container) return;
+        if (!container || !game_name) return;
+
+        // we aren't on a csgo page so ignore for now
+        if (game_name.innerHTML.indexOf('Counter-Strike: Global Offensive') == -1) return;
 
         let newAhref = document.createElement('a');
 
@@ -532,9 +536,12 @@ ${g_pse_removeAllListings.toString()}
         }
 
         let pricehistory = document.getElementById('pricehistory');
-        pricehistory.innerHTML = '';
 
-        Util.injectScriptTag(`
+        // make sure we can graph something
+        if (line1 && pricehistory) {
+            pricehistory.innerHTML = '';
+
+            Util.injectScriptTag(`
 (function() {
 ${line1}
 
@@ -542,7 +549,7 @@ ${drawCustomPlot.toString()}
 
 drawCustomPlot(line1);
 })();`);
-        //
+        }
     }
 
 }
