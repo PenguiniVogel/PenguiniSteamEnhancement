@@ -119,11 +119,11 @@ module Listings {
 
         // item name from url, as that isn't translated
         let windowHref = window?.location?.href;
-        let link_match: string | RegExpMatchArray = /730\/.*/g.exec(windowHref);
+        let link_match: string | RegExpMatchArray = /730\/(.*)[?#]?/g.exec(windowHref);
 
-        if (!link_match) return;
+        if (link_match?.length < 2) return;
 
-        link_match = decodeURIComponent(link_match[0].substr('730/'.length));
+        link_match = decodeURIComponent(link_match[1]);
 
         let special_quality: string | RegExpMatchArray = /^(★(?: StatTrak™)?|StatTrak™|Souvenir)/g.exec(link_match) ?? ['-1'];
         let itemName = link_match;
@@ -465,6 +465,9 @@ ${g_pse_removeAllListings.toString()}
 
     function injectPriceGraphFix(): void {
         function drawCustomPlot(line1: any): void {
+            // copy the original format to make sure we use the right currency and what not, otherwise default to %0.2f
+            let yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
+
             g_plotPriceHistory = $J.jqplot('pricehistory', [line1], {
                 title: {
                     text: 'Median Sale Prices',
@@ -481,13 +484,15 @@ ${g_pse_removeAllListings.toString()}
                 axes: {
                     xaxis: {
                         renderer: $J.jqplot.DateAxisRenderer,
-                        tickOptions: { formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>' },
+                        tickOptions: {
+                            formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
+                        },
                         pad: 1
                     },
                     yaxis: {
                         pad: 1.1,
                         tickOptions: {
-                            formatString: '$%0.2f',
+                            formatString: yaxis_format,
                             labelPosition: 'start',
                             showMark: false
                         },

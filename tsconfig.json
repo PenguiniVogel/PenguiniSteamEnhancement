@@ -5,8 +5,9 @@
         "sourceMap": false
     },
     "files": [
-        "steam.d.ts",
-        "Util.ts",
-        "listings/listings.ts"
+        "lib/steam.d.ts",
+        "src/Util.ts",
+        "src/listings.ts",
+        "src/market.ts"
     ]
 }
