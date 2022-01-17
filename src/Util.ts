@@ -9,13 +9,8 @@ module Util {
     }
 
     export function injectScriptTag(innerHTML: string): void {
-        let newScriptTag = document.createElement('script');
-
-        newScriptTag.setAttribute('data-pse-tag', 'SteamPenguiniEnhancement IniScript');
-
-        newScriptTag.innerHTML = innerHTML;
-
-        document.getElementsByTagName('body')[0].append(newScriptTag);
+        InjectionService.encode_content = true;
+        InjectionService.injectCode(innerHTML, 'body');
     }
 
     export function initModal(): void {

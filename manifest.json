@@ -1,25 +1,32 @@
 {
     "name": "Penguini Steam Enhancement",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Adds extended functionality and cosmetic elements to Steam.",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "content_scripts": [
         {
             "js": [
-                "src/Util.js",
-                "src/listings.js"
+                "lib/InjectionService.js",
+                "src/Util.js"
             ],
             "matches": [
-                "https://steamcommunity.com/market/listings/*"
+                "*://steamcommunity.com/*"
             ]
         },
         {
             "js": [
-                "src/Util.js",
+                "src/listings.js"
+            ],
+            "matches": [
+                "*://steamcommunity.com/market/listings/*"
+            ]
+        },
+        {
+            "js": [
                 "src/market.js"
             ],
             "matches": [
-                "https://steamcommunity.com/market/"
+                "*://steamcommunity.com/market/"
             ]
         }
     ],

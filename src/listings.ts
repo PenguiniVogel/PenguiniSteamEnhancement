@@ -248,7 +248,7 @@ module Listings {
 
         if (rows?.length == 0) return;
 
-        container.querySelector('div.market_listing_table_header span.market_listing_listed_date').innerHTML = 'COUNT';
+        // container.querySelector('div.market_listing_table_header span.market_listing_listed_date').innerHTML = 'COUNT';
 
         let listingData: {
             name: string,
@@ -256,11 +256,13 @@ module Listings {
             market_link: string,
             listings: {
                 [price: string]: {
-                    itemid: string,
-                    listingid: string,
-                    img_src: string,
-                    img_srcset: string
-                }[]
+                    [date: string]: {
+                        itemid: string,
+                        listingid: string,
+                        img_src: string,
+                        img_srcset: string
+                    }[]
+                }
             }
         } = {
             name: document.querySelector('#largeiteminfo_item_name').innerHTML.trim(),
@@ -271,9 +273,15 @@ module Listings {
 
         let simpleListingData: {
             [price: string]: {
-                itemid: string,
-                listingid: string
-            }[]
+                [date: string]: {
+                    itemid: string,
+                    listingid: string
+                }[]
+            }
+        } = {};
+
+        let afterFeePrices: {
+            [price: string]: string
         } = {};
 
         for (let i = 0, l = rows.length; i < l; i ++) {
@@ -302,22 +310,29 @@ module Listings {
             }
 
             // Util.debug(listingid, itemid);
+            let dateDiv = <HTMLElement>row.querySelector('div.market_listing_listed_date');
+            let date = (dateDiv?.innerHTML ?? '?').trim();
 
-            let priceSpan = <HTMLElement>row.querySelector('.market_listing_my_price span[title]');
-            let price = (priceSpan?.innerText ?? '?').trim();
+            let priceSpans = <NodeListOf<HTMLElement>>row.querySelectorAll('.market_listing_my_price span[title]');
+            let price = (priceSpans?.item(0)?.innerText ?? '?').trim();
+
+            afterFeePrices[price] = (priceSpans?.item(1)?.innerText ?? '?').trim();
 
             let img = <HTMLElement>row.querySelector('img[id]');
 
-            let itemListings = listingData.listings[price] ?? (listingData.listings[price] = []);
-            itemListings.push({
+            let mergedByPrice = listingData.listings[price] ?? (listingData.listings[price] = {});
+            let mergedByDate = mergedByPrice[date] ?? (mergedByPrice[date] = []);
+
+            mergedByDate.push({
                 itemid: itemid,
                 listingid: listingid,
                 img_src: img.getAttribute('src'),
                 img_srcset: img.getAttribute('srcset')
             });
 
-            let simpleListings = simpleListingData[price] ?? (simpleListingData[price] = []);
-            simpleListings.push({
+            let simpleListingsByPrice = simpleListingData[price] ?? (simpleListingData[price] = {});
+            let simpleListingsByDate = simpleListingsByPrice[date] ?? (simpleListingsByPrice[date] = []);
+            simpleListingsByDate.push({
                 itemid: itemid,
                 listingid: listingid,
             });
@@ -327,7 +342,9 @@ module Listings {
 
         let myListedPrices = Object.keys(listingData.listings).sort((a, b) => a > b ? 1 : -1);
 
-        Util.debug(myListedPrices, listingData);
+        Util.debug(myListedPrices, listingData, simpleListingData);
+
+        // g_ functions
 
         function g_pse_sendRemove(listingid: string, onSuccess: (transport) => void, onFailure: (transport) => void): void {
             new Ajax.Request(`https://steamcommunity.com/market/removelisting/${listingid}`, {
@@ -340,18 +357,21 @@ module Listings {
             });
         }
 
-        function g_pse_removeNextListing(key: string, index: number): void {
-            let next = g_pse_listingdata[key][0];
+        function g_pse_removeNextListing(price: string, date: string, id: string): void {
+            let next = g_pse_listingdata[price][date][0];
 
             g_pse_showModal(`
 Removing listing... (${next.listingid})
-<img style="display: block; margin: 10px auto 0;" src="https://community.cloudflare.steamstatic.com/public/images/login/throbber.gif" alt="Working...">
-                `);
+<img style="display: block; margin: 10px auto 0;" src="https://community.cloudflare.steamstatic.com/public/images/login/throbber.gif" alt="Working...">`);
 
             g_pse_sendRemove(next.listingid, (transport) => {
-                g_pse_listingdata[key].shift();
+                g_pse_listingdata[price][date].shift();
 
-                document.querySelector(`#mylisting_combined_${index}_count`).innerHTML = `${g_pse_listingdata[key].length}`;
+                let totalCount = document.querySelector('#my_market_selllistings_number');
+
+                totalCount.innerHTML = `${+totalCount.innerHTML - 1}`;
+
+                document.querySelector(`#mylisting_combined_${id}_count`).innerHTML = `${g_pse_listingdata[price][date].length}`;
 
                 g_pse_dismissModal();
 
@@ -363,19 +383,19 @@ Removing listing... (${next.listingid})
             });
         }
 
-        function g_pse_removeAllListings(key: string, index: number): void {
-            let listings = g_pse_listingdata[key];
+        function g_pse_removeAllListings(price: string, date: string, id: string): void {
+            let listings = g_pse_listingdata[price][date];
             let count = listings.length;
             let at = 0;
 
             function removeNext(): void {
-                let next = g_pse_listingdata[key][0];
+                let next = g_pse_listingdata[price][date][0];
                 at ++;
 
                 if (at >= count) {
                     g_pse_dismissModal();
 
-                    document.querySelector(`#mylisting_combined_${index}`).setAttribute('style', 'display: none;');
+                    document.querySelector(`#mylisting_combined_${id}`).setAttribute('style', 'display: none;');
                 }
 
                 g_pse_showModal(`
@@ -383,9 +403,13 @@ Removing listings... (${at} / ${count})<br>(${next.listingid})
 <img style="display: block; margin: 10px auto 0;" src="https://community.cloudflare.steamstatic.com/public/images/login/throbber.gif" alt="Working...">`);
 
                 g_pse_sendRemove(next.listingid, (transport) => {
-                    g_pse_listingdata[key].shift();
+                    g_pse_listingdata[price][date].shift();
 
-                    document.querySelector(`#mylisting_combined_${index}_count`).innerHTML = `${g_pse_listingdata[key].length}`;
+                    let totalCount = document.querySelector('#my_market_selllistings_number');
+
+                    totalCount.innerHTML = `${+totalCount.innerHTML - 1}`;
+
+                    document.querySelector(`#mylisting_combined_${id}_count`).innerHTML = `${g_pse_listingdata[price][date].length}`;
 
                     removeNext();
 
@@ -400,6 +424,8 @@ Removing listings... (${at} / ${count})<br>(${next.listingid})
             removeNext();
         }
 
+        Util.debug(simpleListingData);
+
         Util.injectScriptTag(`
 var g_pse_listingdata = ${JSON.stringify(simpleListingData)};
 
@@ -410,45 +436,55 @@ ${g_pse_removeNextListing.toString()}
 ${g_pse_removeAllListings.toString()}
         `);
 
+        // make new html
+
         for (let i = 0, l = myListedPrices.length; i < l; i ++) {
-            let newHTML = `
-<div class="market_listing_row market_recent_listing_row listing_combined${i}" id="mylisting_combined_${i}">
-    <img id="mylisting_combined_${i}_img" src="${listingData.listings[myListedPrices[i]][0].img_src}" srcset="${listingData.listings[myListedPrices[i]][0].img_srcset}" style="${listingData.border_color}" class="market_listing_item_img" alt="img_${listingData.name}">
+            let price = myListedPrices[i];
+            let mergedByDate = listingData.listings[price];
+            let dates = Object.keys(mergedByDate);
+            for (let x = 0, y = dates.length; x < y; x ++) {
+                Util.debug(price, dates[x], mergedByDate);
+                let data = mergedByDate[dates[x]];
+                let newHTML = `
+<div class="market_listing_row market_recent_listing_row listing_combined${i}-${x}" id="mylisting_combined_${i}-${x}">
+    <img id="mylisting_combined_${i}-${x}_img" src="${data[0].img_src}" srcset="${data[0].img_srcset}" style="${listingData.border_color}" class="market_listing_item_img" alt="img_${listingData.name}">
 
     <div class="market_listing_right_cell market_listing_edit_buttons placeholder"></div>
 
     <div class="market_listing_right_cell market_listing_my_price">
         <span class="market_table_value">
             <span class="market_listing_price">
-                <span style="display: inline-block">
+                <span style="display: inline-block;">
                     <span title="This is the price the buyer pays.">${myListedPrices[i]}</span>
                     <br>
-                    <!--span title="This is how much you will receive." style="color: #AFAFAF">(0,01€)</span-->
+                    <span title="This is how much you will receive." style="color: #AFAFAF;">${afterFeePrices[price]}</span>
                 </span>
             </span>
         </span>
     </div>
 
-    <div id="mylisting_combined_${i}_count" class="market_listing_right_cell market_listing_listed_date can_combine">${listingData.listings[myListedPrices[i]].length}</div>
+    <div class="market_listing_right_cell market_listing_listed_date can_combine">${dates[x]}</div>
+
+    <div id="mylisting_combined_${i}-${x}_count" class="market_listing_right_cell market_listing_listed_date can_combine">${data.length}</div>
 
     <div class="market_listing_item_name_block">
-        <span id="mylisting_combined_${i}_name" class="market_listing_item_name" style="color: #D2D2D2;">
+        <span id="mylisting_combined_${i}-${x}_name" class="market_listing_item_name" style="color: #D2D2D2;">
             <a class="market_listing_item_name_link" href="${listingData.market_link}">${listingData.name}</a>
         </span>
         <br>
         <span class="market_listing_game_name">Counter-Strike: Global Offensive</span>
-        <!--div class="market_listing_listed_date_combined">Listed: 5 Nov</div-->
+        <!--div class="market_listing_listed_date_combined">Listed: ${dates[x]}</div-->
     </div>
 
     <div class="market_listing_edit_buttons actual_content">
         <div class="market_listing_cancel_button">
-            <a href="javascript:g_pse_removeNextListing('${myListedPrices[i]}', ${i});" class="item_market_action_button item_market_action_button_edit nodisable">
+            <a href="javascript:g_pse_removeNextListing('${price}', '${dates[x]}', '${i}-${x}');" class="item_market_action_button item_market_action_button_edit nodisable">
                 <span class="item_market_action_button_edge item_market_action_button_left"></span>
                 <span class="item_market_action_button_contents">Remove</span>
                 <span class="item_market_action_button_edge item_market_action_button_right"></span>
                 <span class="item_market_action_button_preload"></span>
             </a>
-            <a href="javascript:g_pse_removeAllListings('${myListedPrices[i]}', ${i});" class="item_market_action_button item_market_action_button_edit nodisable">
+            <a href="javascript:g_pse_removeAllListings('${price}', '${dates[x]}', '${i}-${x}');" class="item_market_action_button item_market_action_button_edit nodisable">
                 <span class="item_market_action_button_edge item_market_action_button_left"></span>
                 <span class="item_market_action_button_contents">Remove All</span>
                 <span class="item_market_action_button_edge item_market_action_button_right"></span>
@@ -456,17 +492,18 @@ ${g_pse_removeAllListings.toString()}
             </a>
         </div>
     </div>
-    <div style="clear: both"></div>
+    <div style="clear: both;"></div>
 </div>`;
 
-            rowContainer.innerHTML += newHTML;
+                rowContainer.innerHTML += newHTML;
+            }
         }
     }
 
     function injectPriceGraphFix(): void {
         function drawCustomPlot(line1: any): void {
             // copy the original format to make sure we use the right currency and what not, otherwise default to %0.2f
-            let yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
+            const yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
 
             g_plotPriceHistory = $J.jqplot('pricehistory', [line1], {
                 title: {

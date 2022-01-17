@@ -12,8 +12,10 @@ declare var g_oMyHistory: CAjaxPagingControls;
 
 declare var g_pse_listingdata: {
     [price: string]: {
-        itemid: string,
-        listingid: string
+        [date: string]: {
+            itemid: string,
+            listingid: string
+        }[]
     }[]
 };
 
