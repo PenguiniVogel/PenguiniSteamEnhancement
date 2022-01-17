@@ -23,7 +23,7 @@ f_uglify() {
 DEST=".export"
 
 echo "Make sure directory structure exists"
-mkdir -p .export/src
+mkdir -p .export/{src,lib}
 echo " "
 
 echo "TypeScript compile"
@@ -32,6 +32,7 @@ echo " "
 
 # copy files
 
+f_copy "lib/*.js"
 f_copy "src/*.js"
 
 for f in "icon128.png" "icon48.png" "icon16.png" "manifest.json"
