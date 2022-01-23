@@ -9,8 +9,7 @@ module Util {
     }
 
     export function injectScriptTag(innerHTML: string): void {
-        InjectionService.encode_content = true;
-        InjectionService.injectCode(innerHTML, 'body');
+        InjectionServiceLib.injectCode(innerHTML, 'body');
     }
 
     export function initModal(): void {

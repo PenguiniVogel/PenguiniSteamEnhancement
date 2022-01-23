@@ -22,6 +22,10 @@ f_uglify() {
 
 DEST=".export"
 
+echo "Deleting previous export..."
+rm -rf .export
+echo " "
+
 echo "Make sure directory structure exists"
 mkdir -p .export/{src,lib}
 echo " "
