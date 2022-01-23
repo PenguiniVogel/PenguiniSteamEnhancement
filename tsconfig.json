@@ -9,6 +9,7 @@
         "lib/InjectionService.ts",
         "src/Util.ts",
         "src/listings.ts",
-        "src/market.ts"
+        "src/market.ts",
+        "src/currencies.ts"
     ]
 }

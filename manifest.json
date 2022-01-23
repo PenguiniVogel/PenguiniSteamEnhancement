@@ -7,7 +7,8 @@
         {
             "js": [
                 "lib/InjectionService.js",
-                "src/Util.js"
+                "src/Util.js",
+                "src/currencies.js"
             ],
             "matches": [
                 "*://steamcommunity.com/*"
