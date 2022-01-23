@@ -1,6 +1,6 @@
 {
     "name": "Penguini Steam Enhancement",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Adds extended functionality and cosmetic elements to Steam.",
     "manifest_version": 3,
     "content_scripts": [
@@ -8,7 +8,8 @@
             "js": [
                 "lib/InjectionServiceLib.js",
                 "lib/globals.js",
-                "src/Util.js"
+                "src/Util.js",
+                "src/currencies.js"
             ],
             "matches": [
                 "*://steamcommunity.com/*"
