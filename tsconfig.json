@@ -6,7 +6,8 @@
     },
     "files": [
         "lib/steam.d.ts",
-        "lib/InjectionService.ts",
+        "lib/InjectionServiceLib.ts",
+        "lib/globals.ts",
         "src/Util.ts",
         "src/listings.ts",
         "src/market.ts",
