@@ -22,7 +22,7 @@ let steam_globals: {
 };
 
 window.addEventListener('message', (e: MessageEvent<{ map: string, global: any }[]>) => {
-    console.debug(e.data);
+    // console.debug(e.data);
     if ((e?.data ?? [{ map: '', global: null }])[0]?.map == 'ISL_GLOBALS') {
         for (let i = 1, l = e.data.length; i < l; i ++) {
             let global = e.data[i];
