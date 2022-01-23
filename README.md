@@ -7,5 +7,6 @@ What you get with this extension:
 * Buy Instantly
 * Bulk Listing removal
 * Listings / Orders get merged
+* View buy order summary (quantity x price, total sum of placed buy orders and wallet limit for placing buy orders)
 
 
