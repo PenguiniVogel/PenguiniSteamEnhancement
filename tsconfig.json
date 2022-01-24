@@ -4,13 +4,8 @@
         "target": "es5",
         "sourceMap": false
     },
-    "files": [
-        "lib/steam.d.ts",
-        "lib/InjectionServiceLib.ts",
-        "lib/globals.ts",
-        "src/Util.ts",
-        "src/listings.ts",
-        "src/market.ts",
-        "src/currencies.ts"
+    "include": [
+        "lib/*.ts",
+        "src/*.ts"
     ]
 }

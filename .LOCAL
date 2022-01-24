@@ -1,0 +1,5 @@
+1 1.0.4 3 24012022
+
+# Whats the point of this file?
+# As the version in the manifest defines release, this is to keep track of revisions during development of the next release
+# Format <major release number> <manifest version> <revision> <date ddmmyyyy>

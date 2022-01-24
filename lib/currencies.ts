@@ -1,4 +1,5 @@
 module Currency {
+
     export const CURRENCY = [
         {
             'code': 'USD',
@@ -246,4 +247,5 @@ module Currency {
             'symbol': '원'
         }
     ];
+
 }

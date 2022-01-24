@@ -78,7 +78,7 @@ module Market {
             oPagingControl.GoToPage(+iPage - 1);
         }
 
-        Util.injectScriptTag(`
+        InjectionServiceLib.injectCode(`
 ${g_pse_initAdvancedPaging.toString()}
 
 ${g_pse_advancedPaging.toString()}
@@ -87,7 +87,7 @@ ${g_pse_advancedPaging.toString()}
 ${g_pse_overriddenLoadMarketHistory.toString()}
 LoadMarketHistory = g_pse_overriddenLoadMarketHistory;
 LoadMarketHistory(true);
-        `);
+        `, 'body');
 
     }
 

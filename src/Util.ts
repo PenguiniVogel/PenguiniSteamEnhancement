@@ -8,10 +8,6 @@ module Util {
         console.debug('[SteamPenguiniEnhancement]', ...data);
     }
 
-    export function injectScriptTag(innerHTML: string): void {
-        InjectionServiceLib.injectCode(innerHTML, 'body');
-    }
-
     export function initModal(): void {
         let div = document.createElement('div');
 
@@ -40,13 +36,11 @@ module Util {
             }
         }
 
-        Util.injectScriptTag(`
+        InjectionServiceLib.injectCode(`
 var g_pse_currentModal = null;
-
 ${g_pse_showModal.toString()}
-
 ${g_pse_dismissModal.toString()}
-        `);
+        `, 'body');
     }
 
 }

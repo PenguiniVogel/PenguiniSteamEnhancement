@@ -426,15 +426,12 @@ Removing listings... (${at} / ${count})<br>(${next.listingid})
 
         Util.debug(simpleListingData);
 
-        Util.injectScriptTag(`
+        InjectionServiceLib.injectCode(`
 var g_pse_listingdata = ${JSON.stringify(simpleListingData)};
-
 ${g_pse_sendRemove.toString()}
-
 ${g_pse_removeNextListing.toString()}
-
 ${g_pse_removeAllListings.toString()}
-        `);
+        `, 'body');
 
         // make new html
 
@@ -586,14 +583,12 @@ ${g_pse_removeAllListings.toString()}
         if (line1 && pricehistory) {
             pricehistory.innerHTML = '';
 
-            Util.injectScriptTag(`
+            InjectionServiceLib.injectCode(`
 (function() {
 ${line1}
-
 ${drawCustomPlot.toString()}
-
 drawCustomPlot(line1);
-})();`);
+})();`, 'body');
         }
     }
 
