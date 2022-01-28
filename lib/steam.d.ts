@@ -27,6 +27,8 @@ declare function g_pse_advancedPaging(iPage: any, oPagingControl: CAjaxPagingCon
 
 declare function LoadMarketHistory(): unknown;
 
+declare function CancelMarketBuyOrder(buy_order_id): unknown;
+
 declare function MergeWithAssetArray(nIn: any): void;
 
 declare function pricehistory_zoomMonthOrLifetime(plot: any, earliest: any, latest: any): void;

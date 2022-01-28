@@ -1,6 +1,15 @@
+/**
+ * Thanks to 6matko <br>
+ * https://github.com/6matko
+ */
+/** */
 module Currency {
 
-    export const CURRENCY = [
+    export const STEAM_CURRENCIES: {
+        'code': string,
+        'currencyId': number,
+        'symbol': string
+    }[] = [
         {
             'code': 'USD',
             'currencyId': 1,

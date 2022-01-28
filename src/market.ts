@@ -1,10 +1,24 @@
 module Market {
 
     export function init(): void {
+        // add modal
+        Util.initModal();
+
         // add the advanced code to the page
         initAdvancedPageNavigation();
+
+        /**
+         * Thanks to 6matko <br>
+         * https://github.com/6matko
+         */
         // calculate buy orders and adding information to the page
         calculateBuyOrderSummary();
+
+        // add buy order cancel confirmation
+        addBuyOrderCancelConfirmation();
+
+        // add buy order scrolling
+        addBuyOrderScrolling();
     }
 
     function initAdvancedPageNavigation(): void {
@@ -80,9 +94,7 @@ module Market {
 
         InjectionServiceLib.injectCode(`
 ${g_pse_initAdvancedPaging.toString()}
-
 ${g_pse_advancedPaging.toString()}
-
 // Override LoadMarketHistory to avoid it jumping around
 ${g_pse_overriddenLoadMarketHistory.toString()}
 LoadMarketHistory = g_pse_overriddenLoadMarketHistory;
@@ -91,24 +103,30 @@ LoadMarketHistory(true);
 
     }
 
+    /**
+     * Thanks to 6matko <br>
+     * https://github.com/6matko
+     */
     function calculateBuyOrderSummary() {
+
         /**
          * Creates header column element to insert into table
          *
          * @return {HTMLSpanElement} Returns column element with necessary classes and other settings
          */
         function createHeaderColumn(): HTMLSpanElement {
-            var newHeaderColumn = document.createElement('span');
+            let newHeaderColumn = document.createElement('span');
             // Adding necessary clases
             newHeaderColumn.classList.add('market_listing_right_cell');
             newHeaderColumn.classList.add('market_listing_my_price');
             newHeaderColumn.classList.add('market_listing_summary');
             newHeaderColumn.innerText = 'Summary';
+
             return newHeaderColumn;
         }
 
         function createSummaryColumn() {
-            var summaryElement = document.createElement('div');
+            let summaryElement = document.createElement('div');
             // Adding necessary classes for proper display
             summaryElement.className = 'market_listing_right_cell market_listing_my_price market_listing_buyorder_summary';
             // Adding structure that is used for other columns
@@ -118,19 +136,20 @@ LoadMarketHistory(true);
                 </span>
             </span>
             `;
+
             return summaryElement;
         }
 
         function setBOSummary(currencySymbol: string) {
-            var currentBalance = +document.getElementById('marketWalletBalanceAmount')
-                .innerText.replace(currencySymbol, '').replace(',--', '').replace(',', '.');
+            let formatRegex = /,(?:--)?/g;
+            let currentBalance = +(document.getElementById('marketWalletBalanceAmount').innerText.replace(currencySymbol, '').replace(formatRegex, '.'));
 
             // Getting max possible buy order balance. Limit is 10x current balance
-            var maxBuyOrderBalance = currentBalance * 10;
+            let maxBuyOrderBalance = currentBalance * 10;
 
-            var buyOrderTable = document.querySelectorAll('.my_listing_section.market_content_block.market_home_listing_table')[1];
+            let buyOrderTable = document.querySelectorAll('.my_listing_section.market_content_block.market_home_listing_table')[1];
             // Creating header column
-            var newHeaderColumn = createHeaderColumn();
+            let newHeaderColumn = createHeaderColumn();
             // Adding header column to table
             buyOrderTable.children[1].insertBefore(newHeaderColumn, buyOrderTable.children[1].children[1]);
 
@@ -138,15 +157,15 @@ LoadMarketHistory(true);
             // Adding it here because otherwise there will be issues during calculation (since elements alter)
             for (let i = 2; i < buyOrderTable.children.length; i++) {
                 // Creating element for new column in buy order row
-                var newSummaryColumn = createSummaryColumn();
+                let newSummaryColumn = createSummaryColumn();
                 const rowElement = buyOrderTable.children[i];
                 rowElement.insertBefore(newSummaryColumn, rowElement.children[2]);
             }
 
             // Getting list of elements with price class. Those are quantity & price (and our summary column)
-            var priceList = buyOrderTable.getElementsByClassName('market_listing_price') as HTMLCollectionOf<HTMLDivElement>;
+            let priceList = buyOrderTable.getElementsByClassName('market_listing_price') as HTMLCollectionOf<HTMLDivElement>;
 
-            var totalSum = 0;
+            let totalSum = 0;
 
             // Adding +1 to length because we are ignoring all 3rd elements
             // and going backwards to get price and quantity. Therefore we need this +1 to guarantee
@@ -155,10 +174,10 @@ LoadMarketHistory(true);
                 // Since we have our custom summary column in markup, it appears in array
                 // as 0, 3, 6 (3rd) element. We are performing calculation when we hit our custom column
                 // because we know that two previous elements are quantity and price
-                if (i !== 0 && !(i % 3)) {
-                    var price = +priceList[i - 2].innerText.replace(currencySymbol, '').replace(',--', '').replace(',', '.');
+                if (i != 0 && !(i % 3)) {
+                    let price = +(priceList[i - 2].innerText.replace(currencySymbol, '').replace(formatRegex, '.'));
                     // Total price for buy order row (price * quantity)
-                    var totalForRow = +(price * (+priceList[i - 1].innerText));
+                    let totalForRow = +(price * (+priceList[i - 1].innerText));
                     // Adding to global total sum
                     totalSum += totalForRow;
 
@@ -168,7 +187,7 @@ LoadMarketHistory(true);
                     priceList[i - 3].innerHTML = `
                     <div>${totalForRow.toFixed(2)}${currencySymbol}</div>
                     <div style="border-top: 1px solid; color: ${maxBuyOrderBalance > totalSum ? 'green' : 'red'};">
-                    ${totalSum.toFixed(2)}${currencySymbol}
+                        ${totalSum.toFixed(2)}${currencySymbol}
                     </div>
                     `;
                 }
@@ -183,17 +202,80 @@ LoadMarketHistory(true);
 
         try {
             // Getting information about currency from markup. This information can be found in data attributes
-            var currencyInMarkup = +(document.getElementsByTagName('html')[0].querySelector('[data-currency]') as HTMLElement)?.dataset?.currency;
+            let currencyInMarkup = +(document.querySelector('[data-currency]').getAttribute('data-currency'));
 
             // Getting symbol from our currency list
-            var currencySymbol = Currency.CURRENCY.filter(c => c.currencyId === currencyInMarkup)[0].symbol;
+            let currencySymbol = Currency.STEAM_CURRENCIES.filter(c => c.currencyId == currencyInMarkup)[0].symbol;
             // Setting buy order summary for display
             setBOSummary(currencySymbol);
         } catch (error) {
-            console.log(`Something went wrong during buy order summary calculation`);
-            console.log(error);
+            Util.debug('Something went wrong during buy order summary calculation');
+            console.error(error);
         }
     }
+
+    function addBuyOrderCancelConfirmation(): void {
+        function g_pse_cancel_buyorder(name: string, id: string): void {
+            let modal_content = `
+            <div>
+                <div style="text-align: left; font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 5px;">Remove a Buy Order</div>
+                <div>Cancel Buy Order: <a style="font-weight: 600; color: #fff; cursor: default;">${name}</a></div>
+                <div style="margin-top: 10px;">
+                    <a style="padding: 10px;" class="btn_green_white_innerfade btn_medium_wide" href="javascript:CancelMarketBuyOrder('${id}');">Yes</a>
+                    <a style="margin-right: 5px; pointer-events: none; cursor: default;"></a>
+                    <a style="padding: 10px;" class="btn_grey_white_innerfade btn_medium_wide" href="javascript:g_pse_dismissModal();">Cancel</a>
+                </div>
+            </div>
+            `;
+
+            g_pse_showModal(modal_content);
+        }
+
+        InjectionServiceLib.injectCode(`${g_pse_cancel_buyorder.toString()}`, 'body');
+
+        let listBuyOrders = <NodeListOf<HTMLElement>>document.querySelectorAll('div[id^="mybuyorder_"]');
+
+        for (let i = 0, l = listBuyOrders.length; i < l; i ++) {
+            let row = listBuyOrders.item(i);
+            let buyOrderName = row.querySelector('span[id^="mbuyorder_"] a[href]').innerHTML;
+            let cancelButton = row.querySelector('div.market_listing_cancel_button a[href]');
+            let buyOrderId = /\d+/.exec(cancelButton.getAttribute('href'))[0];
+
+            cancelButton.setAttribute('href', `javascript:g_pse_cancel_buyorder('${buyOrderName}', '${buyOrderId}');`);
+        }
+    }
+
+    function addBuyOrderScrolling(): void {
+        let buyOrderTable = document.querySelectorAll('.my_listing_section.market_content_block.market_home_listing_table')[1];
+
+        buyOrderTable.setAttribute('style', 'max-height: 530px; overflow-y: auto;');
+
+        let customScrollStyle = `          
+            /* width */
+            .my_listing_section.market_content_block.market_home_listing_table::-webkit-scrollbar {
+                width: 10px;
+            }
+            
+            /* track */
+            .my_listing_section.market_content_block.market_home_listing_table::-webkit-scrollbar-track {
+                background: #1b2838;
+            }
+            
+            /* handle */
+            .my_listing_section.market_content_block.market_home_listing_table::-webkit-scrollbar-thumb {
+                border-radius: 5px;
+                background: #000f18;
+            }
+            
+            /* handle on hover */
+            .my_listing_section.market_content_block.market_home_listing_table::-webkit-scrollbar-thumb:hover {
+                background: #001f33;
+            }
+        `;
+
+        InjectionServiceLib.injectCSS(customScrollStyle);
+    }
+
 }
 
 setTimeout(() => Market.init(), 150);

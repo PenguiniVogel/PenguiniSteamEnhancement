@@ -21,23 +21,30 @@ let steam_globals: {
     g_rgWalletInfo: null
 };
 
-window.addEventListener('message', (e: MessageEvent<{ map: string, global: any }[]>) => {
-    // console.debug(e.data);
-    if ((e?.data ?? [{ map: '', global: null }])[0]?.map == 'ISL_GLOBALS') {
-        for (let i = 1, l = e.data.length; i < l; i ++) {
-            let global = e.data[i];
+module globals {
 
-            steam_globals[global.map] = global.global;
+    let requireGlobals = [
+        'g_rgWalletInfo'
+    ];
+
+    window.addEventListener('message', (e: MessageEvent<[string, { map: string, global: any }]>) => {
+        // console.debug(e.data);
+        if ((e?.data ?? ['', null])[0] == 'ISL_GLOBALS') {
+            steam_globals[e.data[1].map] = e.data[1].global;
+
+            console.debug('[PenguiniSteamEnhancement] Getting Steam global:', steam_globals);
         }
+    });
 
-        console.debug('[PenguiniSteamEnhancement] Getting Steam globals:', steam_globals);
+    function psePushGlobal(global: string): string {
+        return `var ${global} = ${global} ?? null;\nif (${global}) { window.postMessage(['ISL_GLOBALS',{map:'${global}',global:${global}}], '*'); }`;
     }
-});
 
-function g_pse_getGlobals(globals: { map: string, global: any }[]): void {
-    let origin = <{ map: string, global: any }[]>[{ map: 'ISL_GLOBALS', global: null }];
-    globals.forEach(e => origin.push(e));
-    window.postMessage(origin, '*');
+    let g_code = '';
+    for (let l_global of requireGlobals) {
+        g_code += `${psePushGlobal('g_rgWalletInfo')}\n`;
+    }
+
+    InjectionServiceLib.injectCode(g_code, 'body');
+
 }
-
-InjectionServiceLib.injectCode(`${g_pse_getGlobals.toString()}\ng_pse_getGlobals([{map:'g_rgWalletInfo',global:g_rgWalletInfo}]);`, 'body');
