@@ -1,6 +1,7 @@
 declare var g_sessionID;
 
 declare var g_plotPriceHistory;
+declare var g_pse_test_graph;
 
 declare var g_timePriceHistoryEarliest;
 declare var g_timePriceHistoryLatest;
@@ -64,6 +65,8 @@ declare module $J {
 
     export module jqplot {
         export var DateAxisRenderer;
+        export var AxisTickRenderer;
+        export var CanvasAxisLabelRenderer;
     }
 
     export function jqplot(id: string, data: any[], options: {

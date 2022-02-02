@@ -567,6 +567,127 @@ ${g_pse_removeAllListings.toString()}
             pricehistory_zoomMonthOrLifetime(g_plotPriceHistory, g_timePriceHistoryEarliest, g_timePriceHistoryLatest);
         }
 
+        function testGraph(): void {
+            let container = <HTMLElement>document.querySelector('#mainContents div.market_listing_iteminfo');
+
+            let hr = document.createElement('hr');
+            let div = document.createElement('div');
+
+            div.setAttribute('id', 'test-graph');
+            div.setAttribute('style', 'height: 300px');
+
+            container.append(hr, div);
+
+            // jqplot
+
+            let today = new Date(2022, 1, 1);
+            let dates = [];
+
+            for (let i = 0, l = 7 * 4; i < l; i ++) {
+                dates[i] = [i, today];
+
+                today = new Date(today.setDate(today.getDate() + 1));
+            }
+
+            let randomPrices = [];
+            for (let i = 0, l = 7 * 4; i < l; i ++) {
+                randomPrices[i] = ~~(Math.random() * 100) / 100;
+            }
+
+            let randomVolumes = [];
+            for (let i = 0, l = 7 * 4; i < l; i ++) {
+                randomVolumes[i] = ~~(100_000 * ~~(Math.random() * 100) / 100);
+            }
+
+            let m_prices = [];
+            let m_volumes = [];
+
+            for (let i = 0, l = 7 * 4; i < l; i ++) {
+                m_prices[i] = [i, randomPrices[i], `${randomVolumes[i]}`];
+                m_volumes[i] = [i, randomVolumes[i], `${randomPrices[i]}`];
+            }
+
+            // console.log(randomPrices);
+
+            g_pse_test_graph = $J.jqplot('test-graph', [m_prices, m_volumes], {
+                axes: {
+                    xaxis: {
+                        ticks: dates
+                    },
+                    yaxis: {
+                        pad: 1.1,
+                        tickOptions: {
+                            formatString: '%0.2f',
+                            labelPosition: 'start',
+                            showMark: false
+                        },
+                        numberTicks: 7
+                    },
+                    y2axis: {
+                        pad: 1.1,
+                        tickOptions: {
+                            formatString: '%0.0f',
+                            labelPosition: 'start',
+                            showMark: false
+                        },
+                        numberTicks: 7
+                    }
+                },
+                grid: {
+                    gridLineColor: '#1b2939',
+                    borderColor: '#1b2939',
+                    background: '#101822'
+                },
+                gridPadding: {
+                    left: 45,
+                    right:45,
+                    top:25
+                },
+                axesDefaults: {
+                    showTickMarks: false
+                },
+                cursor: {
+                    show: true,
+                    zoom: true,
+                    showTooltip: false
+                },
+                highlighter: {
+                    show: true,
+                    lineWidthAdjust: 2.5,
+                    sizeAdjust: 5,
+                    showTooltip: true,
+                    tooltipLocation: 'n',
+                    tooltipOffset: 20,
+                    fadeTooltip: true,
+                    tooltipAxes: 'y',
+                    yvalues: 2
+                },
+                series: [
+                    {
+                        yaxis: 'yaxis',
+                        lineWidth: 3,
+                        markerOptions: {
+                            show: false,
+                            style: 'circle'
+                        }
+                    },
+                    {
+                        yaxis: 'y2axis',
+                        lineWidth: 3,
+                        markerOptions: {
+                            show: false,
+                            style: 'circle'
+                        }
+                    }
+                ],
+                seriesColors: [
+                    "#688f3e",
+                    "#6b8fc3"
+                ]
+            });
+
+        }
+
         // find line1 data
         let line1 = '';
         let scripts = document.querySelectorAll('body script');
@@ -584,7 +705,10 @@ ${g_pse_removeAllListings.toString()}
             pricehistory.innerHTML = '';
 
             InjectionServiceLib.injectCode(`
+var g_pse_test_graph = null;
 (function() {
+${testGraph.toString()}
+testGraph();
 ${line1}
 ${drawCustomPlot.toString()}
 drawCustomPlot(line1);
