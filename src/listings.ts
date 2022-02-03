@@ -567,7 +567,9 @@ ${g_pse_removeAllListings.toString()}
             pricehistory_zoomMonthOrLifetime(g_plotPriceHistory, g_timePriceHistoryEarliest, g_timePriceHistoryLatest);
         }
 
-        function testGraph(): void {
+        function g_pse_render_custom_graph(line1: [string, number, string][]): void {
+            const yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
+
             let container = <HTMLElement>document.querySelector('#mainContents div.market_listing_iteminfo');
 
             let hr = document.createElement('hr');
@@ -580,48 +582,77 @@ ${g_pse_removeAllListings.toString()}
 
             // jqplot
 
-            let today = new Date(2022, 1, 1);
             let dates = [];
-
-            for (let i = 0, l = 7 * 4; i < l; i ++) {
-                dates[i] = [i, today];
-
-                today = new Date(today.setDate(today.getDate() + 1));
-            }
-
-            let randomPrices = [];
-            for (let i = 0, l = 7 * 4; i < l; i ++) {
-                randomPrices[i] = ~~(Math.random() * 100) / 100;
-            }
-
-            let randomVolumes = [];
-            for (let i = 0, l = 7 * 4; i < l; i ++) {
-                randomVolumes[i] = ~~(100_000 * ~~(Math.random() * 100) / 100);
-            }
-
             let m_prices = [];
             let m_volumes = [];
 
-            for (let i = 0, l = 7 * 4; i < l; i ++) {
-                m_prices[i] = [i, randomPrices[i], `${randomVolumes[i]}`];
-                m_volumes[i] = [i, randomVolumes[i], `${randomPrices[i]}`];
+            // let today = new Date(2022, 1, 1);
+            //
+            // for (let i = 0, l = 7 * 4; i < l; i ++) {
+            //     dates[i] = today;
+            //
+            //     today = new Date(today.setDate(today.getDate() + 1));
+            // }
+            //
+            // let randomPrices = [];
+            // for (let i = 0, l = 7 * 4; i < l; i ++) {
+            //     randomPrices[i] = ~~(Math.random() * 100) / 100;
+            // }
+            //
+            // let randomVolumes = [];
+            // for (let i = 0, l = 7 * 4; i < l; i ++) {
+            //     randomVolumes[i] = ~~(100_000 * ~~(Math.random() * 100) / 100);
+            // }
+            //
+            // for (let i = 0, l = 7 * 4; i < l; i ++) {
+            //     m_prices[i] = [dates[i], randomPrices[i], `${randomVolumes[i]}`];
+            //     m_volumes[i] = [dates[i], randomVolumes[i], `${randomPrices[i]}`];
+            // }
+
+            // remap line1
+            console.debug(`[${Util.STATIC_ID.NAME}] Remapping ${line1.length} entries`);
+
+            let y_min = -0.1, y_max = 0;
+            let y1_min = -1, y1_max = 0;
+
+            for (let i = 0, l = line1.length; i < l; i ++) {
+                let l_data = line1[i];
+                let date = l_data[0];
+                let price = +l_data[1];
+                let volume = +l_data[2];
+
+                y_max = Math.max(y_max, price);
+                y1_max = Math.max(y1_max, volume);
+
+                dates[i] = [i, date];
+                m_prices[i] = [date, price, `${volume}`];
+                m_volumes[i] = [date, volume, `${price}`];
             }
+
+            y_max = y_max + (y_max * 0.1);
+            y1_max = ~~(y1_max + (y1_max * 0.1));
 
             // console.log(randomPrices);
 
-            g_pse_test_graph = $J.jqplot('test-graph', [m_prices, m_volumes], {
+            g_pse_custom_graph = $J.jqplot('test-graph', [m_prices, m_volumes], {
                 axes: {
                     xaxis: {
-                        ticks: dates
+                        renderer: $J.jqplot.DateAxisRenderer,
+                        tickOptions: {
+                            formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
+                        },
+                        pad: 1
                     },
                     yaxis: {
                         pad: 1.1,
                         tickOptions: {
-                            formatString: '%0.2f',
+                            formatString: yaxis_format,
                             labelPosition: 'start',
                             showMark: false
                         },
-                        numberTicks: 7
+                        numberTicks: 7,
+                        min: y_min,
+                        max: y_max
                     },
                     y2axis: {
                         pad: 1.1,
@@ -630,7 +661,9 @@ ${g_pse_removeAllListings.toString()}
                             labelPosition: 'start',
                             showMark: false
                         },
-                        numberTicks: 7
+                        numberTicks: 7,
+                        min: y1_min,
+                        max: y1_max
                     }
                 },
                 grid: {
@@ -648,8 +681,9 @@ ${g_pse_removeAllListings.toString()}
                 },
                 cursor: {
                     show: true,
-                    zoom: true,
-                    showTooltip: false
+                    showTooltip: false,
+                    zoom:true,
+                    constrainZoomTo: 'x'
                 },
                 highlighter: {
                     show: true,
@@ -659,7 +693,7 @@ ${g_pse_removeAllListings.toString()}
                     tooltipLocation: 'n',
                     tooltipOffset: 20,
                     fadeTooltip: true,
-                    tooltipAxes: 'y',
+                    tooltipAxes: 'xy',
                     yvalues: 2
                 },
                 series: [
@@ -669,6 +703,9 @@ ${g_pse_removeAllListings.toString()}
                         markerOptions: {
                             show: false,
                             style: 'circle'
+                        },
+                        highlighter: {
+                            formatString: '%s<br>%s<br>%s sold'
                         }
                     },
                     {
@@ -677,6 +714,9 @@ ${g_pse_removeAllListings.toString()}
                         markerOptions: {
                             show: false,
                             style: 'circle'
+                        },
+                        highlighter: {
+                            formatString: `%s<br>%s sold @ ${yaxis_format}`
                         }
                     }
                 ],
@@ -705,12 +745,12 @@ ${g_pse_removeAllListings.toString()}
             pricehistory.innerHTML = '';
 
             InjectionServiceLib.injectCode(`
-var g_pse_test_graph = null;
+var g_pse_custom_graph = null;
 (function() {
-${testGraph.toString()}
-testGraph();
-${line1}
+${g_pse_render_custom_graph.toString()}
 ${drawCustomPlot.toString()}
+${line1}
+g_pse_render_custom_graph(line1);
 drawCustomPlot(line1);
 })();`, 'body');
         }

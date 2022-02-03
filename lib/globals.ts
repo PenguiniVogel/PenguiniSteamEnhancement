@@ -32,7 +32,7 @@ module globals {
         if ((e?.data ?? ['', null])[0] == 'ISL_GLOBALS') {
             steam_globals[e.data[1].map] = e.data[1].global;
 
-            console.debug('[PenguiniSteamEnhancement] Getting Steam global:', steam_globals);
+            console.debug(`[${Util.STATIC_ID.NAME}] Getting Steam global:`, steam_globals);
         }
     });
 

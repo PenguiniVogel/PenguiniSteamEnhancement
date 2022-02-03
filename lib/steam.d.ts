@@ -1,7 +1,7 @@
 declare var g_sessionID;
 
 declare var g_plotPriceHistory;
-declare var g_pse_test_graph;
+declare var g_pse_custom_graph;
 
 declare var g_timePriceHistoryEarliest;
 declare var g_timePriceHistoryLatest;

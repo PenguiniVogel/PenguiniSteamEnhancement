@@ -1,11 +1,12 @@
 module Util {
 
     export const enum STATIC_ID {
-        MODAL = 'modal_pse_custom_modal'
+        MODAL = 'modal_pse_custom_modal',
+        NAME = 'SteamPenguiniEnhancement'
     }
 
     export function debug(...data: any[]): void {
-        console.debug('[SteamPenguiniEnhancement]', ...data);
+        console.debug(`[${STATIC_ID.NAME}]`, ...data);
     }
 
     export function initModal(): void {
