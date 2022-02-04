@@ -1,7 +1,11 @@
 declare var g_sessionID;
 
+declare var g_pse_y_format: string;
 declare var g_plotPriceHistory;
+declare var Market_OrderSpreadPlot;
 declare var g_pse_custom_graph;
+declare var g_pse_zoom_data: ZoomData;
+declare var g_pse_data: [[string, number, string][], [string, number, string][]];
 
 declare var g_timePriceHistoryEarliest;
 declare var g_timePriceHistoryLatest;
@@ -35,7 +39,7 @@ declare function MergeWithAssetArray(nIn: any): void;
 declare function pricehistory_zoomMonthOrLifetime(plot: any, earliest: any, latest: any): void;
 
 declare function $(selector: any)
-declare function $J(selector: any): any;
+declare function $J(selector: any): $J.$JR;
 
 declare function CModal($Jcontent, params?): void;
 
@@ -63,10 +67,14 @@ declare interface CAjaxPagingControls {
 
 declare module $J {
 
+    export interface $JR {
+        children: () => $JR;
+        first: () => $JR;
+        remove: () => $JR;
+    }
+
     export module jqplot {
         export var DateAxisRenderer;
-        export var AxisTickRenderer;
-        export var CanvasAxisLabelRenderer;
     }
 
     export function jqplot(id: string, data: any[], options: {
@@ -88,3 +96,7 @@ declare module Ajax {
     }): void;
 
 }
+
+type ZoomData = {
+    [key in 'week' | 'one_month' | 'six_month' | 'lifetime']?: [number, number]
+};

@@ -498,122 +498,105 @@ ${g_pse_removeAllListings.toString()}
     }
 
     function injectPriceGraphFix(): void {
-        function drawCustomPlot(line1: any): void {
-            // copy the original format to make sure we use the right currency and what not, otherwise default to %0.2f
-            const yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
+        // function drawCustomPlot(line1: any): void {
+        //     // copy the original format to make sure we use the right currency and what not, otherwise default to %0.2f
+        //     const yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
+        //
+        //     g_plotPriceHistory = $J.jqplot('pricehistory', [line1], {
+        //         title: {
+        //             text: 'Median Sale Prices',
+        //             textAlign: 'left'
+        //         },
+        //         gridPadding: {
+        //             left: 45,
+        //             right:45,
+        //             top:25
+        //         },
+        //         axesDefaults: {
+        //             showTickMarks: false
+        //         },
+        //         axes: {
+        //             xaxis: {
+        //                 renderer: $J.jqplot.DateAxisRenderer,
+        //                 tickOptions: {
+        //                     formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
+        //                 },
+        //                 pad: 1
+        //             },
+        //             yaxis: {
+        //                 pad: 1.1,
+        //                 tickOptions: {
+        //                     formatString: yaxis_format,
+        //                     labelPosition: 'start',
+        //                     showMark: false
+        //                 },
+        //                 numberTicks: 7
+        //             }
+        //         },
+        //         grid: {
+        //             gridLineColor: '#1b2939',
+        //             borderColor: '#1b2939',
+        //             background: '#101822'
+        //         },
+        //         cursor: {
+        //             show: true,
+        //             zoom: true,
+        //             showTooltip: false
+        //         },
+        //         highlighter: {
+        //             show: true,
+        //             lineWidthAdjust: 2.5,
+        //             sizeAdjust: 5,
+        //             showTooltip: true,
+        //             tooltipLocation: 'n',
+        //             tooltipOffset: 20,
+        //             fadeTooltip: true,
+        //             yvalues: 2,
+        //             formatString: '<strong>%s</strong><br>%s<br>%d sold'
+        //         },
+        //         series: [{
+        //             lineWidth: 3,
+        //             markerOptions: {
+        //                 show: false,
+        //                 style: 'circle'
+        //             }
+        //         }],
+        //         seriesColors: [ "#688F3E" ]
+        //     });
+        //
+        //     pricehistory_zoomMonthOrLifetime(g_plotPriceHistory, g_timePriceHistoryEarliest, g_timePriceHistoryLatest);
+        // }
 
-            g_plotPriceHistory = $J.jqplot('pricehistory', [line1], {
-                title: {
-                    text: 'Median Sale Prices',
-                    textAlign: 'left'
-                },
-                gridPadding: {
-                    left: 45,
-                    right:45,
-                    top:25
-                },
-                axesDefaults: {
-                    showTickMarks: false
-                },
-                axes: {
-                    xaxis: {
-                        renderer: $J.jqplot.DateAxisRenderer,
-                        tickOptions: {
-                            formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
-                        },
-                        pad: 1
-                    },
-                    yaxis: {
-                        pad: 1.1,
-                        tickOptions: {
-                            formatString: yaxis_format,
-                            labelPosition: 'start',
-                            showMark: false
-                        },
-                        numberTicks: 7
-                    }
-                },
-                grid: {
-                    gridLineColor: '#1b2939',
-                    borderColor: '#1b2939',
-                    background: '#101822'
-                },
-                cursor: {
-                    show: true,
-                    zoom: true,
-                    showTooltip: false
-                },
-                highlighter: {
-                    show: true,
-                    lineWidthAdjust: 2.5,
-                    sizeAdjust: 5,
-                    showTooltip: true,
-                    tooltipLocation: 'n',
-                    tooltipOffset: 20,
-                    fadeTooltip: true,
-                    yvalues: 2,
-                    formatString: '<strong>%s</strong><br>%s<br>%d sold'
-                },
-                series: [{
-                    lineWidth: 3,
-                    markerOptions: {
-                        show: false,
-                        style: 'circle'
-                    }
-                }],
-                seriesColors: [ "#688F3E" ]
-            });
+        function g_pse_destroy(): void {
+            function replot_Market_OrderSpreadPlot(): void {
+                if (Market_OrderSpreadPlot) {
+                    Market_OrderSpreadPlot.replot({
+                        cursor: {
+                            zoom: false
+                        }
+                    });
+                } else {
+                    setTimeout(() => replot_Market_OrderSpreadPlot(), 250);
+                }
+            }
 
-            pricehistory_zoomMonthOrLifetime(g_plotPriceHistory, g_timePriceHistoryEarliest, g_timePriceHistoryLatest);
+            replot_Market_OrderSpreadPlot();
+
+            g_plotPriceHistory.destroy();
         }
 
-        function g_pse_render_custom_graph(line1: [string, number, string][]): void {
-            const yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
-
-            let container = <HTMLElement>document.querySelector('#mainContents div.market_listing_iteminfo');
-
-            let hr = document.createElement('hr');
-            let div = document.createElement('div');
-
-            div.setAttribute('id', 'test-graph');
-            div.setAttribute('style', 'height: 300px');
-
-            container.append(hr, div);
+        function g_pse_createZoomData(line1: [string, number, string][]): void {
+            // copy Y formatString
+            g_pse_y_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
 
             // jqplot
 
-            let dates = [];
-            let m_prices = [];
-            let m_volumes = [];
-
-            // let today = new Date(2022, 1, 1);
-            //
-            // for (let i = 0, l = 7 * 4; i < l; i ++) {
-            //     dates[i] = today;
-            //
-            //     today = new Date(today.setDate(today.getDate() + 1));
-            // }
-            //
-            // let randomPrices = [];
-            // for (let i = 0, l = 7 * 4; i < l; i ++) {
-            //     randomPrices[i] = ~~(Math.random() * 100) / 100;
-            // }
-            //
-            // let randomVolumes = [];
-            // for (let i = 0, l = 7 * 4; i < l; i ++) {
-            //     randomVolumes[i] = ~~(100_000 * ~~(Math.random() * 100) / 100);
-            // }
-            //
-            // for (let i = 0, l = 7 * 4; i < l; i ++) {
-            //     m_prices[i] = [dates[i], randomPrices[i], `${randomVolumes[i]}`];
-            //     m_volumes[i] = [dates[i], randomVolumes[i], `${randomPrices[i]}`];
-            // }
+            let dates: string[] = [];
+            let m_prices: [string, number, string][] = [];
+            let m_volumes: [string, number, string][] = [];
 
             // remap line1
             console.debug(`[${Util.STATIC_ID.NAME}] Remapping ${line1.length} entries`);
-
-            let y_min = -0.1, y_max = 0;
-            let y1_min = -1, y1_max = 0;
 
             for (let i = 0, l = line1.length; i < l; i ++) {
                 let l_data = line1[i];
@@ -621,37 +604,88 @@ ${g_pse_removeAllListings.toString()}
                 let price = +l_data[1];
                 let volume = +l_data[2];
 
-                y_max = Math.max(y_max, price);
-                y1_max = Math.max(y1_max, volume);
-
-                dates[i] = [i, date];
+                dates[i] = date;
                 m_prices[i] = [date, price, `${volume}`];
                 m_volumes[i] = [date, volume, `${price}`];
             }
 
+            // make zoom data
+            let zoomData: ZoomData = {};
+
+            // last week is always comprised of 24 hours each day for 7 days (7 * 24)
+            // we make sure we have at least 2 weeks of data (2 * 7 * 24)
+            if (dates.length > 2 * 7 * 24) {
+                zoomData.week = [m_prices.length - (7 * 24), m_prices.length - 1];
+            }
+
+            // last month is always compromised of 24 hours each day for at least 31 days (31 * 24)
+            // we make sure we have at least 2 months of data (31 + 31 * 24)
+            if (dates.length > 31 + (31 * 24)) {
+                zoomData.one_month = [m_prices.length - (31 * 24), m_prices.length - 1];
+            }
+
+            // last six months is always compromised of 1 month with 31 days with full data (31 * 24) + (31 * 6)
+            // we make sure we have at least 7 months of data (31 * 24) + (31 * 6)
+            if (dates.length > (31 * 24) + (31 * 6)) {
+                zoomData.six_month = [m_prices.length - ((31 * 24) + (31 * 5)), m_prices.length - 1];
+            }
+
+            zoomData.lifetime = [0, m_prices.length - 1];
+
+            g_pse_zoom_data = zoomData;
+            g_pse_data = [m_prices, m_volumes];
+
+            console.debug(m_prices, m_volumes);
+
+            // make controls
+            let controls = document.querySelector('div.zoom_controls.pricehistory_zoom_controls');
+
+            controls.setAttribute('class', 'zoom_controls pricehistory_zoom_controls');
+            controls.setAttribute('style', 'margin-top: 15px; margin-bottom: 5px;');
+
+            controls.innerHTML = `
+            Zoom graph
+            <${g_pse_zoom_data.week ? '' : '!--'}a class="zoomopt" onclick="" href="javascript:g_pse_render_custom_graph('week');">Week</a${g_pse_zoom_data.week ? '' : '--'}>
+            <${g_pse_zoom_data.one_month ? '' : '!--'}a class="zoomopt" onclick="" href="javascript:g_pse_render_custom_graph('one_month');">Month</a${g_pse_zoom_data.one_month ? '' : '--'}>
+            <${g_pse_zoom_data.six_month ? '' : '!--'}a class="zoomopt" onclick="" href="javascript:g_pse_render_custom_graph('six_month');">6 Months</a${g_pse_zoom_data.six_month ? '' : '--'}>
+            <${g_pse_zoom_data.lifetime ? '' : '!--'}a class="zoomopt" onclick="" href="javascript:g_pse_render_custom_graph('lifetime');" style="padding-right: 0;">Lifetime</a${g_pse_zoom_data.lifetime ? '' : '--'}>
+            `;
+        }
+
+        function g_pse_render_custom_graph(key: string): void {
+            // jqplot
+            let range = g_pse_zoom_data[key] ?? g_pse_zoom_data.lifetime;
+            let data = [g_pse_data[0].slice(range[0], range[1]), g_pse_data[1].slice(range[0], range[1])];
+
+            let y_max = Math.max(...data[0].map(x => x[1]));
+            let y2_max = Math.max(...data[1].map(x => x[1]));
+
             y_max = y_max + (y_max * 0.1);
-            y1_max = ~~(y1_max + (y1_max * 0.1));
+            y2_max = ~~(y2_max + (y2_max * 0.1));
 
-            // console.log(randomPrices);
+            if (g_pse_custom_graph) {
+                g_pse_custom_graph.destroy();
+                g_pse_custom_graph = null;
+            }
 
-            g_pse_custom_graph = $J.jqplot('test-graph', [m_prices, m_volumes], {
+            g_pse_custom_graph = $J.jqplot('pricehistory', data, {
                 axes: {
                     xaxis: {
                         renderer: $J.jqplot.DateAxisRenderer,
                         tickOptions: {
-                            formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
+                            formatString: '<div style="margin-top: 4px;"></div>%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
                         },
                         pad: 1
                     },
                     yaxis: {
                         pad: 1.1,
                         tickOptions: {
-                            formatString: yaxis_format,
+                            formatString: g_pse_y_format,
                             labelPosition: 'start',
                             showMark: false
                         },
                         numberTicks: 7,
-                        min: y_min,
+                        min: 0,
                         max: y_max
                     },
                     y2axis: {
@@ -662,8 +696,8 @@ ${g_pse_removeAllListings.toString()}
                             showMark: false
                         },
                         numberTicks: 7,
-                        min: y1_min,
-                        max: y1_max
+                        min: 0,
+                        max: y2_max
                     }
                 },
                 grid: {
@@ -673,8 +707,8 @@ ${g_pse_removeAllListings.toString()}
                 },
                 gridPadding: {
                     left: 45,
-                    right:45,
-                    top:25
+                    right: 45,
+                    top: 25
                 },
                 axesDefaults: {
                     showTickMarks: false
@@ -682,7 +716,7 @@ ${g_pse_removeAllListings.toString()}
                 cursor: {
                     show: true,
                     showTooltip: false,
-                    zoom:true,
+                    zoom: true,
                     constrainZoomTo: 'x'
                 },
                 highlighter: {
@@ -705,7 +739,7 @@ ${g_pse_removeAllListings.toString()}
                             style: 'circle'
                         },
                         highlighter: {
-                            formatString: '%s<br>%s<br>%s sold'
+                            formatString: '<b>%s</b><br>%s<br>%s sold'
                         }
                     },
                     {
@@ -716,7 +750,7 @@ ${g_pse_removeAllListings.toString()}
                             style: 'circle'
                         },
                         highlighter: {
-                            formatString: `%s<br>%s sold @ ${yaxis_format}`
+                            formatString: `<b>%s</b><br>%s sold @ ${g_pse_y_format}`
                         }
                     }
                 ],
@@ -726,6 +760,8 @@ ${g_pse_removeAllListings.toString()}
                 ]
             });
 
+            $J('#pricehistory .jqplot-yaxis').children().first().remove();
+            $J('#pricehistory .jqplot-y2axis').children().first().remove();
         }
 
         // find line1 data
@@ -745,13 +781,18 @@ ${g_pse_removeAllListings.toString()}
             pricehistory.innerHTML = '';
 
             InjectionServiceLib.injectCode(`
+var g_pse_y_format = null;
 var g_pse_custom_graph = null;
-(function() {
+var g_pse_zoom_data = null;
+var g_pse_data = null;
 ${g_pse_render_custom_graph.toString()}
-${drawCustomPlot.toString()}
+(function() {
+${g_pse_createZoomData.toString()}
 ${line1}
-g_pse_render_custom_graph(line1);
-drawCustomPlot(line1);
+${g_pse_destroy.toString()}
+g_pse_destroy();
+g_pse_createZoomData(line1);
+g_pse_render_custom_graph('one_month');
 })();`, 'body');
         }
     }
