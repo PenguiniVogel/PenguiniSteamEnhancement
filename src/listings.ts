@@ -498,75 +498,6 @@ ${g_pse_removeAllListings.toString()}
     }
 
     function injectPriceGraphFix(): void {
-        // function drawCustomPlot(line1: any): void {
-        //     // copy the original format to make sure we use the right currency and what not, otherwise default to %0.2f
-        //     const yaxis_format = g_plotPriceHistory?.options?.axes?.yaxis?.tickOptions?.formatString ?? '%0.2f';
-        //
-        //     g_plotPriceHistory = $J.jqplot('pricehistory', [line1], {
-        //         title: {
-        //             text: 'Median Sale Prices',
-        //             textAlign: 'left'
-        //         },
-        //         gridPadding: {
-        //             left: 45,
-        //             right:45,
-        //             top:25
-        //         },
-        //         axesDefaults: {
-        //             showTickMarks: false
-        //         },
-        //         axes: {
-        //             xaxis: {
-        //                 renderer: $J.jqplot.DateAxisRenderer,
-        //                 tickOptions: {
-        //                     formatString: '%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
-        //                 },
-        //                 pad: 1
-        //             },
-        //             yaxis: {
-        //                 pad: 1.1,
-        //                 tickOptions: {
-        //                     formatString: yaxis_format,
-        //                     labelPosition: 'start',
-        //                     showMark: false
-        //                 },
-        //                 numberTicks: 7
-        //             }
-        //         },
-        //         grid: {
-        //             gridLineColor: '#1b2939',
-        //             borderColor: '#1b2939',
-        //             background: '#101822'
-        //         },
-        //         cursor: {
-        //             show: true,
-        //             zoom: true,
-        //             showTooltip: false
-        //         },
-        //         highlighter: {
-        //             show: true,
-        //             lineWidthAdjust: 2.5,
-        //             sizeAdjust: 5,
-        //             showTooltip: true,
-        //             tooltipLocation: 'n',
-        //             tooltipOffset: 20,
-        //             fadeTooltip: true,
-        //             yvalues: 2,
-        //             formatString: '<strong>%s</strong><br>%s<br>%d sold'
-        //         },
-        //         series: [{
-        //             lineWidth: 3,
-        //             markerOptions: {
-        //                 show: false,
-        //                 style: 'circle'
-        //             }
-        //         }],
-        //         seriesColors: [ "#688F3E" ]
-        //     });
-        //
-        //     pricehistory_zoomMonthOrLifetime(g_plotPriceHistory, g_timePriceHistoryEarliest, g_timePriceHistoryLatest);
-        // }
-
         function g_pse_destroy(): void {
             function replot_Market_OrderSpreadPlot(): void {
                 if (Market_OrderSpreadPlot) {
@@ -635,7 +566,7 @@ ${g_pse_removeAllListings.toString()}
             g_pse_zoom_data = zoomData;
             g_pse_data = [m_prices, m_volumes];
 
-            console.debug(m_prices, m_volumes);
+            // console.debug(m_prices, m_volumes);
 
             // make controls
             let controls = document.querySelector('div.zoom_controls.pricehistory_zoom_controls');
@@ -687,17 +618,6 @@ ${g_pse_removeAllListings.toString()}
                         numberTicks: 7,
                         min: 0,
                         max: y_max
-                    },
-                    y2axis: {
-                        pad: 1.1,
-                        tickOptions: {
-                            formatString: '%0.0f',
-                            labelPosition: 'start',
-                            showMark: false
-                        },
-                        numberTicks: 7,
-                        min: 0,
-                        max: y2_max
                     }
                 },
                 grid: {
@@ -716,8 +636,7 @@ ${g_pse_removeAllListings.toString()}
                 cursor: {
                     show: true,
                     showTooltip: false,
-                    zoom: true,
-                    constrainZoomTo: 'x'
+                    zoom: true
                 },
                 highlighter: {
                     show: true,
@@ -741,24 +660,104 @@ ${g_pse_removeAllListings.toString()}
                         highlighter: {
                             formatString: '<b>%s</b><br>%s<br>%s sold'
                         }
-                    },
-                    {
-                        yaxis: 'y2axis',
-                        lineWidth: 3,
-                        markerOptions: {
-                            show: false,
-                            style: 'circle'
-                        },
-                        highlighter: {
-                            formatString: `<b>%s</b><br>%s sold @ ${g_pse_y_format}`
-                        }
                     }
                 ],
                 seriesColors: [
-                    "#688f3e",
-                    "#6b8fc3"
+                    "#688f3e"
                 ]
             });
+
+            // g_pse_custom_graph = $J.jqplot('pricehistory', data, {
+            //     axes: {
+            //         xaxis: {
+            //             renderer: $J.jqplot.DateAxisRenderer,
+            //             tickOptions: {
+            //                 formatString: '<div style="margin-top: 4px;"></div>%b %#d<br>%Y<span class="priceHistoryTime"> %#I%p<span>'
+            //             },
+            //             pad: 1
+            //         },
+            //         yaxis: {
+            //             pad: 1.1,
+            //             tickOptions: {
+            //                 formatString: g_pse_y_format,
+            //                 labelPosition: 'start',
+            //                 showMark: false
+            //             },
+            //             numberTicks: 7,
+            //             min: 0,
+            //             max: y_max
+            //         },
+            //         y2axis: {
+            //             pad: 1.1,
+            //             tickOptions: {
+            //                 formatString: '%0.0f',
+            //                 labelPosition: 'start',
+            //                 showMark: false
+            //             },
+            //             numberTicks: 7,
+            //             min: 0,
+            //             max: y2_max
+            //         }
+            //     },
+            //     grid: {
+            //         gridLineColor: '#1b2939',
+            //         borderColor: '#1b2939',
+            //         background: '#101822'
+            //     },
+            //     gridPadding: {
+            //         left: 45,
+            //         right: 45,
+            //         top: 25
+            //     },
+            //     axesDefaults: {
+            //         showTickMarks: false
+            //     },
+            //     cursor: {
+            //         show: true,
+            //         showTooltip: false,
+            //         zoom: true,
+            //         constrainZoomTo: 'x'
+            //     },
+            //     highlighter: {
+            //         show: true,
+            //         lineWidthAdjust: 2.5,
+            //         sizeAdjust: 5,
+            //         showTooltip: true,
+            //         tooltipLocation: 'n',
+            //         tooltipOffset: 20,
+            //         fadeTooltip: true,
+            //         tooltipAxes: 'xy',
+            //         yvalues: 2
+            //     },
+            //     series: [
+            //         {
+            //             yaxis: 'yaxis',
+            //             lineWidth: 3,
+            //             markerOptions: {
+            //                 show: false,
+            //                 style: 'circle'
+            //             },
+            //             highlighter: {
+            //                 formatString: '<b>%s</b><br>%s<br>%s sold'
+            //             }
+            //         },
+            //         {
+            //             yaxis: 'y2axis',
+            //             lineWidth: 3,
+            //             markerOptions: {
+            //                 show: false,
+            //                 style: 'circle'
+            //             },
+            //             highlighter: {
+            //                 formatString: `<b>%s</b><br>%s sold @ ${g_pse_y_format}`
+            //             }
+            //         }
+            //     ],
+            //     seriesColors: [
+            //         "#688f3e",
+            //         "#6b8fc3"
+            //     ]
+            // });
 
             $J('#pricehistory .jqplot-yaxis').children().first().remove();
             $J('#pricehistory .jqplot-y2axis').children().first().remove();

@@ -9,15 +9,6 @@ f_copy() {
   done
 }
 
-# f_uglify
-f_uglify() {
-  for f in $1
-  do
-    echo "Processing (uglifyjs) $f -> $DEST/$f"
-    uglifyjs -c -o "$DEST/$f" "$f"
-  done
-}
-
 # --- main script
 
 DEST=".export"
@@ -43,3 +34,6 @@ for f in "icon128.png" "icon48.png" "icon16.png" "manifest.json"
 do
   f_copy $f
 done
+
+# pause
+read -p "Press [ENTER] to resume ..."
