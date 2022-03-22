@@ -1,0 +1,8 @@
+{
+    "name": "penguinisteamenhancement",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "typescript": "4.5.5"
+    }
+}

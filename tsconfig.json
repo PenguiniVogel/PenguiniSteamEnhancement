@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "module": "None",
+        "target": "es5",
+        "sourceMap": false
+    },
+    "include": [
+        "types/chartjs.d.ts",
+        "lib/*.ts",
+        "src/*.ts"
+    ]
+}

@@ -1,6 +1,11 @@
 .idea
 .export
+node_modules
 
 test
 
 *.js
+package-lock.json
+
+!lib/chart.min.js
+!lib/chartjs-plugin-zoom.min.js
