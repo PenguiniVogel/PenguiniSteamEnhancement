@@ -791,6 +791,9 @@ declare module Chart {
 
         reset(): void;
 
+        // chartjs-plugin-zoom function
+        resetZoom(): void;
+
         update(mode?: UpdateMode): void;
 
         render(): void;
@@ -3262,6 +3265,8 @@ declare module Chart {
         subtitle: TitleOptions;
         title: TitleOptions;
         tooltip: TooltipOptions<TType>;
+        // chartjs-plugin-zoom function
+        zoom: any;
     }
 
     export interface PluginChartOptions<TType extends ChartType> {

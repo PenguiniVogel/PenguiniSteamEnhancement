@@ -12,12 +12,6 @@ div.appendChild(canvas);
 
 document.getElementById('pricehistory').after(div);
 
-// let zoomControls = document.createElement('div');
-//
-// zoomControls.innerHTML = '<input id="xZoom" type="range" min="0" max="100" value="80" /><input id="yZoom" type="range" min="0" max="100" value="100" />';
-//
-// div.after(zoomControls);
-
 let line1 = '';
 let scripts = document.querySelectorAll('body script');
 
@@ -34,12 +28,13 @@ let parsedLine: [string, number, string][] = JSON.parse(line1);
 
 parsedLine.forEach(e => {
     let date = new Date(Date.parse(e[0]));
-    dates.push(`${date.getDay()}.${date.getMonth()}.${date.getFullYear()}`);
+    // console.debug(date, '->', date.getDate(), date.getMonth(), date.getFullYear());
+    dates.push(`${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`);
     prices.push(e[1]);
     volumes.push(+e[2]);
 });
 
-console.debug(dates, prices, volumes);
+// console.debug(dates, prices, volumes);
 
 let chart = new Chart.Chart(canvas.getContext('2d'), {
     type: 'line',
@@ -52,10 +47,11 @@ let chart = new Chart.Chart(canvas.getContext('2d'), {
                 backgroundColor: '#688f3e',
                 borderColor: '#688f3e',
                 tension: 0.05,
-                pointStyle: 'cross',
+                pointStyle: 'circle',
                 pointRadius: 1,
                 pointHitRadius: 2,
-                pointHoverRadius: 5
+                pointHoverRadius: 5,
+                yAxisID: 'y'
             },
             {
                 hidden: true,
@@ -64,23 +60,37 @@ let chart = new Chart.Chart(canvas.getContext('2d'), {
                 backgroundColor: '#6b8fc3',
                 borderColor: '#6b8fc3',
                 tension: 0.05,
-                pointStyle: 'cross',
+                pointStyle: 'circle',
                 pointRadius: 1,
                 pointHitRadius: 2,
-                pointHoverRadius: 5
+                pointHoverRadius: 5,
+                yAxisID: 'y1'
             }
         ]
     },
     options: {
+        layout: {
+            padding: 5
+        },
         scales: {
             x: {
                 grid: {
                     color: '#1b2939'
-                }
+                },
+                min: Math.max(0, dates.length - 150)
             },
             y: {
+                display: true,
+                position: 'left',
                 grid: {
                     color: '#1b2939'
+                }
+            },
+            y1: {
+                display: false,
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false,
                 }
             }
         },
@@ -116,20 +126,80 @@ let chart = new Chart.Chart(canvas.getContext('2d'), {
                         return e.formattedValue;
                     }
                 }
+            },
+            zoom: {
+                pan: {
+                    enabled: false,
+                    mode: 'xy'
+                },
+                zoom: {
+                    mode: 'xy',
+                    drag: {
+                        enabled: true,
+                        borderColor: '#36a2eb',
+                        borderWidth: 1,
+                        backgroundColor: '#36a2eb4c'
+                    }
+                }
+            },
+            legend: {
+                onClick(e, legendItem, legend: Chart.LegendElement<'line'>) {
+                    // console.debug('click');
+                    if (legendItem.text == 'Price') {
+                        let m = chart.getDatasetMeta(0);
+                        m.hidden = !m.hidden;
+
+                        chart.options.scales['y'].display = !m.hidden;
+                    }
+
+                    if (legendItem.text == 'Volume') {
+                        let m = chart.getDatasetMeta(1);
+                        m.hidden = !m.hidden;
+
+                        chart.options.scales['y1'].display = !m.hidden;
+                    }
+
+                    chart.update();
+                }
             }
         }
     }
 });
 
-// let xInZoom = <HTMLInputElement>document.getElementById('xZoom');
-// let yInZoom = <HTMLInputElement>document.getElementById('yZoom');
-//
-// xInZoom.addEventListener('change', () => {
-//     chart.options.scales.x.min = chart.scales['x'].max - (chart.scales['x'].max * (1 - (+xInZoom.value / 100)));
-//     chart.update();
-// });
-//
-// yInZoom.addEventListener('change', () => {
-//     chart.options.scales.y.max = chart.scales['y'].max - (chart.scales['y'].max * (1 - (+yInZoom.value / 100)));
-//     chart.update();
-// });
+document.getElementById('pricehistory').setAttribute('style', 'display: none;');
+
+// get zoom controls
+let zoomControls = document.querySelectorAll('div.zoom_controls.pricehistory_zoom_controls a.zoomopt');
+
+// Week
+zoomControls[0].setAttribute('onclick', '');
+zoomControls[0].addEventListener('click', () => {
+    console.debug('[PSE] Week');
+
+    chart.resetZoom();
+    chart.reset();
+    chart.options.scales['x'].min = Math.max(0, dates.length - 150);
+    chart.update();
+});
+
+// Month
+zoomControls[1].setAttribute('onclick', '');
+zoomControls[1].addEventListener('click', () => {
+    console.debug('[PSE] Month');
+
+    chart.resetZoom();
+    chart.reset();
+    chart.options.scales['x'].min = Math.max(0, dates.length - 550);
+    chart.update();
+});
+
+// Lifetime
+zoomControls[2].setAttribute('onclick', '');
+zoomControls[2].addEventListener('click', () => {
+    console.debug('[PSE] Lifetime');
+
+    chart.resetZoom();
+    chart.reset();
+    chart.options.scales['x'].min = 0;
+    chart.update();
+});

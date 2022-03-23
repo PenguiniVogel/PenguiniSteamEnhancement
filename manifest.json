@@ -7,8 +7,9 @@
         {
             "js": [
                 "lib/chart.min.js",
+                "lib/chartjs-plugin-zoom.min.js",
                 "lib/printf.js",
-                "src/test.js"
+                "src/inject_chart.js"
             ],
             "matches": [
                 "https://steamcommunity.com/market/listings/*"
