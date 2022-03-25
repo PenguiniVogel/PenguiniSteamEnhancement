@@ -6,13 +6,29 @@
     "content_scripts": [
         {
             "js": [
-                "lib/chart.min.js",
-                "lib/chartjs-plugin-zoom.min.js",
                 "lib/printf.js",
+                "lib/InjectionService.js"
+            ],
+            "matches": [
+                "https://steamcommunity.com/*"
+            ],
+            "run_at": "document_start"
+        },
+        {
+            "js": [
+                "lib/chart.min.js",
                 "src/inject_chart.js"
             ],
             "matches": [
                 "https://steamcommunity.com/market/listings/*"
+            ]
+        },
+        {
+            "js": [
+                "src/start.js"
+            ],
+            "matches": [
+                "https://steamcommunity.com/*"
             ]
         }
     ],
