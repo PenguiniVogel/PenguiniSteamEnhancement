@@ -1,24 +1,78 @@
 module Market {
 
+    import storedOptions = Options.storedOptions;
+
     export function init(): void {
+        // add options
+        addOptions();
+
         // add modal
         Modal.initModal();
 
         // add the advanced code to the page
-        initAdvancedPageNavigation();
+        if (storedOptions[Options.ID.ADVANCED_PAGE_NAVIGATION]) {
+            initAdvancedPageNavigation();
+        }
 
         /**
          * Thanks to 6matko <br>
          * https://github.com/6matko
          */
         // calculate buy orders and adding information to the page
-        calculateBuyOrderSummary();
+        if (storedOptions[Options.ID.CALCULATE_BUYORDER_SUMMARY]) {
+            calculateBuyOrderSummary();
+        }
 
         // add buy order cancel confirmation
-        addBuyOrderCancelConfirmation();
+        if (storedOptions[Options.ID.BUYORDER_CANCEL_CONFIRMATION]) {
+            addBuyOrderCancelConfirmation();
+        }
 
         // add buy order scrolling
-        addBuyOrderScrolling();
+        if (Options.ID.BUYORDER_SCROLLING) {
+            addBuyOrderScrolling();
+        }
+    }
+
+    function addOptions(): void {
+        window.addEventListener('message', (e) => {
+            if ((e.data ?? [''])[0] == 'pse_option') {
+                let key = (e.data ?? ['pse_option', 'null', false])[1];
+                let value = (e.data ?? ['pse_option', 'null', false])[2];
+
+                if (Object.keys(storedOptions).indexOf(key) > -1) {
+                    storedOptions[key] = !!value;
+                    Options.save();
+                }
+            }
+        });
+
+        let moreInfo = <HTMLElement>document.querySelector('#moreInfo');
+
+        let optionsDiv = document.createElement('div');
+        optionsDiv.setAttribute('class', 'market_search_sidebar_contents');
+
+        optionsDiv.innerHTML = `<div style="font-weight: 700;">PSE Options:</div>`;
+
+        function createCheckboxOption(key: string, text: string): void {
+            let optionDiv = document.createElement('div');
+
+            optionDiv.innerHTML = `<label for="pse_option_${key}">${text}:</label><input id="pse_option_${key}" type="checkbox" ${storedOptions[key] ? 'checked' : ''} onclick="window.postMessage(['pse_option', '${key}', this.checked], '*');"/>`;
+
+            optionsDiv.appendChild(optionDiv);
+        }
+
+        createCheckboxOption(Options.ID.ADVANCED_PAGE_NAVIGATION, 'Advanced Page Navigation');
+        createCheckboxOption(Options.ID.CALCULATE_BUYORDER_SUMMARY, 'Calculate BuyOrder Summary');
+        createCheckboxOption(Options.ID.BUYORDER_CANCEL_CONFIRMATION, 'BuyOrder Cancel Confirmation');
+        createCheckboxOption(Options.ID.BUYORDER_SCROLLING, 'BuyOrder Scrolling');
+        createCheckboxOption(Options.ID.NEW_GRAPH, 'New Graph');
+        createCheckboxOption(Options.ID.FORCE_ITEM_ACTIVITY, 'Force Item Activity');
+        createCheckboxOption(Options.ID.ADD_VIEW_ON_BUFF, 'Add "View on Buff"');
+        createCheckboxOption(Options.ID.HIDE_ACCOUNT_DETAILS, 'Hide Account Details');
+        createCheckboxOption(Options.ID.MERGE_ACTIVE_LISTINGS, 'Merge Active Listings');
+
+        moreInfo.appendChild(optionsDiv);
     }
 
     function initAdvancedPageNavigation(): void {
@@ -278,4 +332,4 @@ LoadMarketHistory(true);
 
 }
 
-setTimeout(() => Market.init(), 150);
+InjectionServiceLib.onReady(() => setTimeout(() => Market.init(), 150));

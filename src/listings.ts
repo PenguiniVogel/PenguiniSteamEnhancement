@@ -1,5 +1,7 @@
 module Listings {
 
+    import storedOptions = Options.storedOptions;
+
     interface ItemActivityTicker {
         Start: (p: any) => void
     }
@@ -40,7 +42,7 @@ module Listings {
         Modal.initModal();
 
         // add item activity if not present
-        if (!document.getElementById('market_activity_section')) {
+        if (storedOptions[Options.ID.FORCE_ITEM_ACTIVITY] && !document.getElementById('market_activity_section')) {
             addItemActivity();
         }
 
@@ -49,16 +51,21 @@ module Listings {
         // setInterval(() => addBuyImmediately(), 1000);
 
         // add view on buff
-        addViewOnBuff();
+        if (storedOptions[Options.ID.ADD_VIEW_ON_BUFF]) {
+            addViewOnBuff();
+        }
 
         // hide account name
-        hideAccountName();
-
         // hide billing address
-        hideBillingAddress();
+        if (storedOptions[Options.ID.HIDE_ACCOUNT_DETAILS]) {
+            hideAccountName();
+            hideBillingAddress();
+        }
 
         // merge active listings
-        mergeMyActiveListings();
+        if (storedOptions[Options.ID.MERGE_ACTIVE_LISTINGS]) {
+            mergeMyActiveListings();
+        }
 
         // inject custom price graph
         // injectPriceGraphFix();

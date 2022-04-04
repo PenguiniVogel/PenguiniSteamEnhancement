@@ -7,7 +7,9 @@
         {
             "js": [
                 "lib/printf.js",
-                "lib/InjectionService.js"
+                "lib/InjectionService.js",
+                "lib/cookie.js",
+                "src/options.js"
             ],
             "matches": [
                 "https://steamcommunity.com/*"
@@ -34,7 +36,8 @@
                 "src/market.js"
             ],
             "matches": [
-                "https://steamcommunity.com/market/*"
+                "https://steamcommunity.com/market",
+                "https://steamcommunity.com/market/"
             ]
         }
     ],
