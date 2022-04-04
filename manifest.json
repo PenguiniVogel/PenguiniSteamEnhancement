@@ -17,7 +17,10 @@
         {
             "js": [
                 "lib/chart.min.js",
-                "src/inject_chart.js"
+                "lib/Modal.js",
+                "src/globals.js",
+                "src/inject_chart.js",
+                "src/listings.js"
             ],
             "matches": [
                 "https://steamcommunity.com/market/listings/*"
@@ -25,10 +28,13 @@
         },
         {
             "js": [
-                "src/start.js"
+                "lib/Modal.js",
+                "src/globals.js",
+                "src/currencies.js",
+                "src/market.js"
             ],
             "matches": [
-                "https://steamcommunity.com/*"
+                "https://steamcommunity.com/market/*"
             ]
         }
     ],

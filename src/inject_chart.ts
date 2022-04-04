@@ -118,11 +118,11 @@ module InjectChart {
                             // console.debug(price, pricesDatasetMeta, volume, volumesDatasetMeta, e);
 
                             if (pricesDatasetMeta.hidden || !pricesDatasetMeta.visible || volumesDatasetMeta.hidden || !volumesDatasetMeta.visible) {
-                                return `${sprintf('%0.2f', price)} - ${volume} sold.`;
+                                return `${sprintf(steam_globals.g_plotPriceHistory_y_format ?? '%0.2f', price)} - ${volume} sold.`;
                             }
 
                             if (e.dataset.label == 'Price') {
-                                return `${sprintf('%0.2f', price)}`;
+                                return `${sprintf(steam_globals.g_plotPriceHistory_y_format ?? '%0.2f', price)}`;
                             }
 
                             if (e.dataset.label == 'Volume') {
@@ -178,7 +178,7 @@ module InjectChart {
     let zoomControls = document.querySelectorAll('div.zoom_controls.pricehistory_zoom_controls a.zoomopt');
 
     // Week
-    zoomControls[0].setAttribute('onclick', '');
+    zoomControls[0].setAttribute('onclick', 'javascript:void(0);');
     zoomControls[0].addEventListener('click', () => {
         console.debug('[PSE] Week');
 
@@ -189,7 +189,7 @@ module InjectChart {
     });
 
     // Month
-    zoomControls[1].setAttribute('onclick', '');
+    zoomControls[1].setAttribute('onclick', 'javascript:void(0);');
     zoomControls[1].addEventListener('click', () => {
         console.debug('[PSE] Month');
 
@@ -200,7 +200,7 @@ module InjectChart {
     });
 
     // Lifetime
-    zoomControls[2].setAttribute('onclick', '');
+    zoomControls[2].setAttribute('onclick', 'javascript:void(0);');
     zoomControls[2].addEventListener('click', () => {
         console.debug('[PSE] Lifetime');
 
@@ -209,5 +209,11 @@ module InjectChart {
         chart.options.scales['x'].min = 0;
         chart.update();
     });
+
+    InjectionServiceLib.injectCode(`
+    // kill steam function to prevent errors :)
+    pricehistory_zoomDays = function () {};
+    pricehistory_zoomLifetime = function () {};
+    `, 'body');
 
 }
