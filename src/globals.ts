@@ -1,7 +1,7 @@
-const STATIC_ID = {
-    MODAL: 'PSE_MODAL',
-    NAME: 'PSE'
-};
+const enum STATIC_ID {
+    MODAL = 'PSE_MODAL',
+    NAME = 'PSE'
+}
 
 interface g_rgWalletInfo {
     rwgrsn: number;
