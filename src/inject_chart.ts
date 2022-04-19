@@ -36,8 +36,9 @@ module InjectChart {
 
         parsedLine.forEach(e => {
             let date = new Date(Date.parse(e[0]));
-            // console.debug(date, '->', date.getDate(), date.getMonth(), date.getFullYear());
-            dates.push(`${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`);
+            // console.debug(date, '->', date.getDate(), date.getMonth(), date.getFullYear(), ' >>> ', date.getHours(), ':', date.getMinutes(), ':', date.getSeconds());
+            let hour = date.getHours();
+            dates.push(`${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${hour == 0 ? '12AM' : (hour < 12 ? `${hour}AM` : (hour == 12 ? '12PM' : `${hour - 12}PM`))}`);
             prices.push(e[1]);
             volumes.push(+e[2]);
         });
