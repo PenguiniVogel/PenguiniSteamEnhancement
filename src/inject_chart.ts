@@ -78,6 +78,9 @@ module InjectChart {
                 ]
             },
             options: {
+                animation: {
+                    duration: 0
+                },
                 layout: {
                     padding: 5
                 },

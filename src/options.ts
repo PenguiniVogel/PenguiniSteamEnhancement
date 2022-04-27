@@ -51,15 +51,13 @@ module Options {
         } = JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
 
         for (let l_key of Object.keys(DEFAULT_OPTIONS)) {
-            if (storedOptions[l_key]) {
-                // make sure it is a boolean
-                temp[l_key] = !!storedOptions[l_key];
-            }
+            // make sure it is a boolean
+            temp[l_key] = !!storedOptions[l_key];
         }
 
         Cookie.write('pse_settings', JSON.stringify(temp));
 
-        console.debug('[PSE] Write Options:', storedOptions);
+        console.debug('[PSE] Write Options:', temp);
     }
 
     console.debug('[PSE] Options:', storedOptions);

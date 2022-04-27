@@ -69,6 +69,11 @@ module Listings {
 
         // inject custom price graph
         // injectPriceGraphFix();
+
+        // add buy order cancel confirmation
+        if (storedOptions[Options.ID.BUYORDER_CANCEL_CONFIRMATION]) {
+            globals.addBuyOrderCancelConfirmation();
+        }
     }
 
     function addItemActivity(): void {

@@ -25,7 +25,7 @@ module Market {
 
         // add buy order cancel confirmation
         if (storedOptions[Options.ID.BUYORDER_CANCEL_CONFIRMATION]) {
-            addBuyOrderCancelConfirmation();
+            globals.addBuyOrderCancelConfirmation();
         }
 
         // add buy order scrolling
@@ -39,6 +39,8 @@ module Market {
             if ((e.data ?? [''])[0] == 'pse_option') {
                 let key = (e.data ?? ['pse_option', 'null', false])[1];
                 let value = (e.data ?? ['pse_option', 'null', false])[2];
+
+                console.debug(e.data, key, value);
 
                 if (Object.keys(storedOptions).indexOf(key) > -1) {
                     storedOptions[key] = !!value;
@@ -265,37 +267,6 @@ LoadMarketHistory(true);
         } catch (error) {
             console.debug('[PSE] Something went wrong during buy order summary calculation');
             console.error(error);
-        }
-    }
-
-    function addBuyOrderCancelConfirmation(): void {
-        function g_pse_cancel_buyorder(name: string, id: string): void {
-            let modal_content = `
-            <div>
-                <div style="text-align: left; font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 5px;">Remove a Buy Order</div>
-                <div>Cancel Buy Order: <a style="font-weight: 600; color: #fff; cursor: default;">${name}</a></div>
-                <div style="margin-top: 10px;">
-                    <a style="padding: 10px;" class="btn_green_white_innerfade btn_medium_wide" href="javascript:CancelMarketBuyOrder('${id}');">Yes</a>
-                    <a style="margin-right: 5px; pointer-events: none; cursor: default;"></a>
-                    <a style="padding: 10px;" class="btn_grey_white_innerfade btn_medium_wide" href="javascript:g_pse_dismissModal();">Cancel</a>
-                </div>
-            </div>
-            `;
-
-            g_pse_showModal(modal_content);
-        }
-
-        InjectionServiceLib.injectCode(`${g_pse_cancel_buyorder.toString()}`, 'body');
-
-        let listBuyOrders = <NodeListOf<HTMLElement>>document.querySelectorAll('div[id^="mybuyorder_"]');
-
-        for (let i = 0, l = listBuyOrders.length; i < l; i ++) {
-            let row = listBuyOrders.item(i);
-            let buyOrderName = row.querySelector('span[id^="mbuyorder_"] a[href]').innerHTML;
-            let cancelButton = row.querySelector('div.market_listing_cancel_button a[href]');
-            let buyOrderId = /\d+/.exec(cancelButton.getAttribute('href'))[0];
-
-            cancelButton.setAttribute('href', `javascript:g_pse_cancel_buyorder('${buyOrderName}', '${buyOrderId}');`);
         }
     }
 
